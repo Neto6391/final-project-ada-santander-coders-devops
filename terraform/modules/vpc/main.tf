@@ -40,7 +40,7 @@ resource "aws_subnet" "private_subnets" {
 }
 
 resource "aws_db_subnet_group" "ada-contabilidade-database" {
-  name        = "ada-contabilidade-database"
+  name        = "ada-contabilidade-database-${var.environment}"
   description = "Grupo de Subnet para banco de dados RDS"
   subnet_ids  = aws_subnet.private_db[*].id
 
