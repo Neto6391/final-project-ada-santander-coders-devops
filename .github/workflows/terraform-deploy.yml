@@ -49,9 +49,11 @@ jobs:
     
     - name: Terraform Init
       run: terraform init
+      working-directory: ./terraform
 
     - name: Terraform Validate
       run: terraform validate
+      working-directory: ./terraform
 
     - name: Cache Terraform Modules
       uses: actions/cache@v3
@@ -71,7 +73,8 @@ jobs:
         MASTER_USERNAME_RDS: ${{ secrets.MASTER_USERNAME_RDS }}
         MASTER_PASSWORD_RDS: ${{ secrets.MASTER_PASSWORD_RDS }}
       run: terraform plan -var="iam_user_arn=${{ secrets.IAM_USER_ARN }}" -var="master_username_rds=${{ secrets.MASTER_USERNAME_RDS }}" -var="master_password_rds=${{ secrets.MASTER_PASSWORD_RDS }}" -parallelism=15
-    
+      working-directory: ./terraform
+
     - name: Upload Plan Logs
       uses: actions/upload-artifact@v3
       with:
@@ -79,7 +82,6 @@ jobs:
         path: ./terraform/terraform-plan-debug.log
 
     - name: Terraform Apply
-      working-directory: ./terraform
       if: github.ref == 'refs/heads/main' && github.event_name == 'push'
       env:
         TF_LOG: DEBUG
@@ -88,7 +90,8 @@ jobs:
         MASTER_USERNAME_RDS: ${{ secrets.MASTER_USERNAME_RDS }}
         MASTER_PASSWORD_RDS: ${{ secrets.MASTER_PASSWORD_RDS }}
       run: terraform apply -auto-approve -chdir=$BASE_DIR/terraform -var="iam_user_arn=${{ secrets.IAM_USER_ARN }}" -var="master_username_rds=${{ secrets.MASTER_USERNAME_RDS }}" -var="master_password_rds=${{ secrets.MASTER_PASSWORD_RDS }}" -parallelism=15
-    
+      working-directory: ./terraform
+
     - name: Upload Apply Logs
       uses: actions/upload-artifact@v3
       with:
