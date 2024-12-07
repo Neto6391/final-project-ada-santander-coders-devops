@@ -1,4 +1,16 @@
-resource "aws_subnet" "public" {
+resource "aws_vpc" "main" {
+  cidr_block           = var.vpc_cidr
+  enable_dns_hostnames = true
+  enable_dns_support   = true
+
+  tags = {
+    Name        = "${var.environment}-vpc"
+    Environment = var.environment
+    Managed_by  = "terraform"
+  }
+}
+
+resource "aws_subnet" "public_subnets" {
   count                   = length(var.availability_zones)
   vpc_id                  = aws_vpc.main.id
   cidr_block              = cidrsubnet(var.vpc_cidr, 4, count.index)
@@ -13,7 +25,7 @@ resource "aws_subnet" "public" {
   }
 }
 
-resource "aws_subnet" "private_app" {
+resource "aws_subnet" "private_subnets" {
   count             = length(var.availability_zones)
   vpc_id            = aws_vpc.main.id
   cidr_block        = cidrsubnet(var.vpc_cidr, 4, count.index + 4)
@@ -54,4 +66,32 @@ resource "aws_subnet" "private_db" {
     Tier        = "private-db"
     Managed_by  = "terraform"
   }
+}
+
+resource "aws_security_group" "database_security_group" {
+  name        = "database-sec"
+  description = "Allow MySQL inbound traffic and all outbound traffic"
+  vpc_id      = aws_vpc.main.id
+
+  tags = {
+    Name = "database_security_group"
+  }
+}
+
+resource "aws_security_group_rule" "database_security_group_ingress_rule" {
+  type              = "ingress"
+  from_port         = 3306
+  to_port           = 3306
+  protocol          = "tcp"
+  security_group_id = aws_security_group.database_security_group.id
+  cidr_blocks       = [aws_vpc.main.cidr_block]
+}
+
+resource "aws_security_group_rule" "database_security_group_egress_rule" {
+  type              = "egress"
+  from_port         = 0
+  to_port           = 0
+  protocol          = "-1"
+  security_group_id = aws_security_group.database_security_group.id
+  cidr_blocks       = ["0.0.0.0/0"]
 }

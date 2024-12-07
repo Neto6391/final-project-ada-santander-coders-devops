@@ -1,3 +1,8 @@
+module "igw" {
+  source = "../igw"
+  environment = var.environment
+}
+
 resource "aws_eip" "nat" {
   count  = length(var.availability_zones)
   domain = "vpc"
@@ -12,9 +17,9 @@ resource "aws_eip" "nat" {
 resource "aws_nat_gateway" "main" {
   count         = length(var.availability_zones)
   allocation_id = aws_eip.nat[count.index].id
-  subnet_id     = aws_subnet.public[count.index].id
+  subnet_id     = aws_subnet.public_subnets[count.index].id
 
-  depends_on = [aws_internet_gateway.main]
+  depends_on = [module.igw.internet_gateway]
 
   tags = {
     Name        = "${var.environment}-nat-${count.index + 1}"
