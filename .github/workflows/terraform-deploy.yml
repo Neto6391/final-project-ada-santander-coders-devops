@@ -70,7 +70,11 @@ jobs:
         IAM_USER_ARN: ${{ secrets.IAM_USER_ARN }}
         MASTER_USERNAME_RDS: ${{ secrets.MASTER_USERNAME_RDS }}
         MASTER_PASSWORD_RDS: ${{ secrets.MASTER_PASSWORD_RDS }}
-      run: terraform plan -parallelism=15 | tee terraform-plan-debug.log
+      run: terraform plan \
+          -var="iam_user_arn=${{ secrets.IAM_USER_ARN }}" \
+          -var="master_username_rds=${{ secrets.MASTER_USERNAME_RDS }}" \
+          -var="master_password_rds=${{ secrets.MASTER_PASSWORD_RDS }}" \
+          -parallelism=15 | tee terraform-plan-debug.log
     
     - name: Upload Plan Logs
       uses: actions/upload-artifact@v3
@@ -87,7 +91,12 @@ jobs:
         IAM_USER_ARN: ${{ secrets.IAM_USER_ARN }}
         MASTER_USERNAME_RDS: ${{ secrets.MASTER_USERNAME_RDS }}
         MASTER_PASSWORD_RDS: ${{ secrets.MASTER_PASSWORD_RDS }}
-      run: terraform apply -auto-approve -parallelism=15 | tee terraform-apply-debug.log
+      run: terraform apply \
+            -auto-approve \
+            -var="iam_user_arn=${{ secrets.IAM_USER_ARN }}" \
+            -var="master_username_rds=${{ secrets.MASTER_USERNAME_RDS }}" \
+            -var="master_password_rds=${{ secrets.MASTER_PASSWORD_RDS }}" \
+            -parallelism=15 | tee terraform-apply-debug.log
     
     - name: Upload Apply Logs
       uses: actions/upload-artifact@v3
