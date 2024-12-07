@@ -5,6 +5,7 @@ LAMBDA_DIR="./lambdas"
 PACKAGE_DIR="./packages"
 
 mkdir -p $PACKAGE_DIR
+chmod -R 755 $PACKAGE_DIR
 
 for LAMBDA in $(ls $LAMBDA_DIR); do
   echo "Iniciando empacotamento da $LAMBDA..."
@@ -25,7 +26,7 @@ for LAMBDA in $(ls $LAMBDA_DIR); do
   
   echo "Empacotando projeto da $LAMBDA."
   cd $LAMBDA_DIR/$LAMBDA/package
-  zip -r $PACKAGE_DIR/$LAMBDA.zip .
+  zip -r "$(pwd)/$PACKAGE_DIR/$LAMBDA.zip" .
   cd - > /dev/null
   
   zip -g $PACKAGE_DIR/$LAMBDA.zip $LAMBDA_DIR/$LAMBDA/lambda_handler.py
