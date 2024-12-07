@@ -25,8 +25,8 @@ for LAMBDA in $(ls $LAMBDA_DIR); do
   
   echo "Empacotando projeto da $LAMBDA."
   cd $LAMBDA_DIR/$LAMBDA/package
-  zip -r ../../../../$PACKAGE_DIR/$LAMBDA.zip .
-  cd -
+  zip -r $PACKAGE_DIR/$LAMBDA.zip .
+  cd - > /dev/null
   
   zip -g $PACKAGE_DIR/$LAMBDA.zip $LAMBDA_DIR/$LAMBDA/lambda_handler.py
   
