@@ -6,8 +6,8 @@ on:
   pull_request:
     branches: [ main ]
     paths-ignore:
-        - 'docs/**'
-        - 'README.md'
+      - 'docs/**'
+      - 'README.md'
 
 env:
   AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
@@ -51,25 +51,50 @@ jobs:
     - name: Terraform Validate
       working-directory: ./terraform
       run: terraform validate
+
+    - name: Cache Terraform Modules
+      uses: actions/cache@v3
+      with:
+        path: |
+          ~/.terraform.d/plugins
+          .terraform
+        key: ${{ runner.os }}-terraform-${{ hashFiles('**/terraform/*.tf') }}
+        restore-keys: |
+          ${{ runner.os }}-terraform-
     
     - name: Terraform Plan
       working-directory: ./terraform
       env:
+        TF_LOG: DEBUG
+        TF_LOG_PATH: terraform-plan-debug.log
         IAM_USER_ARN: ${{ secrets.IAM_USER_ARN }}
         MASTER_USERNAME_RDS: ${{ secrets.MASTER_USERNAME_RDS }}
         MASTER_PASSWORD_RDS: ${{ secrets.MASTER_PASSWORD_RDS }}
-      run: terraform plan
+      run: terraform plan -parallelism=15 | tee terraform-plan-debug.log
     
+    - name: Upload Plan Logs
+      uses: actions/upload-artifact@v3
+      with:
+        name: terraform-plan-logs
+        path: ./terraform/terraform-plan-debug.log
+
     - name: Terraform Apply
       working-directory: ./terraform
-
       if: github.ref == 'refs/heads/main' && github.event_name == 'push'
       env:
+        TF_LOG: DEBUG
+        TF_LOG_PATH: terraform-apply-debug.log
         IAM_USER_ARN: ${{ secrets.IAM_USER_ARN }}
         MASTER_USERNAME_RDS: ${{ secrets.MASTER_USERNAME_RDS }}
         MASTER_PASSWORD_RDS: ${{ secrets.MASTER_PASSWORD_RDS }}
-      run: terraform apply -auto-approve
+      run: terraform apply -auto-approve -parallelism=15 | tee terraform-apply-debug.log
     
+    - name: Upload Apply Logs
+      uses: actions/upload-artifact@v3
+      with:
+        name: terraform-apply-logs
+        path: ./terraform/terraform-apply-debug.log
+
     - name: Upload Lambda Packages
       uses: actions/upload-artifact@v3
       with:
