@@ -16,7 +16,7 @@ resource "aws_lambda_function" "generate_file" {
 
 resource "aws_lambda_function" "process_file" {
   function_name = "process_file"
-  role          = aws_iam_role.lambda_exec_role.arn
+  role          = aws_iam_role.lambda_execution_role.arn
   handler       = "lambda_handler.handler"
   runtime       = "python3.9"
   filename      = "../../../packages/process_file.zip"
@@ -39,7 +39,7 @@ resource "aws_lambda_event_source_mapping" "process_file_trigger" {
 
 resource "aws_lambda_function" "notify_user" {
   function_name = "notify_user"
-  role          = aws_iam_role.lambda_exec_role.arn
+  role          = aws_iam_role.lambda_execution_role.arn
   handler       = "lambda_handler.handler"
   runtime       = "python3.9"
   filename      = "../../../packages/notify_user.zip"
@@ -56,24 +56,9 @@ resource "aws_lambda_event_source_mapping" "notify_user_trigger" {
   function_name    = aws_lambda_function.notify_user.arn
 }
 
-resource "aws_iam_role" "lambda_exec_role" {
-  name               = "lambda_exec_role"
-  assume_role_policy = data.aws_iam_policy_document.lambda_assume_role_policy.json
-}
-
-data "aws_iam_policy_document" "lambda_assume_role_policy" {
-  statement {
-    actions   = ["sts:AssumeRole"]
-    principals {
-      type        = "Service"
-      identifiers = ["lambda.amazonaws.com"]
-    }
-  }
-}
-
 resource "aws_iam_role_policy" "lambda_policy" {
   name   = "lambda_policy"
-  role   = aws_iam_role.lambda_exec_role.id
+  role   = aws_iam_role.lambda_execution_role.id
   policy = local.lambda_policy
 }
 
