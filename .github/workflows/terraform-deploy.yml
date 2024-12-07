@@ -42,12 +42,15 @@ jobs:
         terraform_version: 1.1.7
     
     - name: Terraform Init
+      working-directory: ./terraform
       run: terraform init
     
     - name: Terraform Validate
+      working-directory: ./terraform
       run: terraform validate
     
     - name: Terraform Plan
+      working-directory: ./terraform
       env:
         IAM_USER_ARN: ${{ secrets.IAM_USER_ARN }}
         MASTER_USERNAME_RDS: ${{ secrets.MASTER_USERNAME_RDS }}
@@ -55,6 +58,7 @@ jobs:
       run: terraform plan
     
     - name: Terraform Apply
+      working-directory: ./terraform
       if: github.ref == 'refs/heads/main' && github.event_name == 'push'
       env:
         IAM_USER_ARN: ${{ secrets.IAM_USER_ARN }}
