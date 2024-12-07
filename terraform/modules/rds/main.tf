@@ -10,7 +10,7 @@ resource "aws_rds_cluster" "ada-contabilidade-database" {
   engine                    = "mysql"
   engine_version            = "8.0.39"
   db_cluster_instance_class = "db.m5d.large"
-  storage_type              = "gp3"
+  storage_type              = "io2"
   allocated_storage         = var.allocated_storage
   iops                      = var.iops
   master_username           = var.master_username

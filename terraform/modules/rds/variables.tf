@@ -17,7 +17,7 @@ variable "iops" {
 variable "allocated_storage" {
   description = "Allocated storage for the RDS"
   type        = number
-  default     = 20
+  default     = 400
 }
 
 variable "database_name" {
