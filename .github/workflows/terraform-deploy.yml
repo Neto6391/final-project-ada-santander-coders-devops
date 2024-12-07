@@ -1,0 +1,79 @@
+name: Terraform Deploy
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+env:
+  AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+  AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+  AWS_REGION: ${{ secrets.AWS_REGION }}
+
+jobs:
+  terraform-deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Configure AWS Credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ secrets.AWS_REGION }}
+    
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.9'
+    
+    - name: Make script executable
+      run: chmod +x scripts/package-lambdas.sh
+    
+    - name: Package Lambda Functions
+      run: ./scripts/package-lambdas.sh
+    
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v3
+      with:
+        terraform_version: 1.1.7
+    
+    - name: Terraform Init
+      run: terraform init
+    
+    - name: Terraform Validate
+      run: terraform validate
+    
+    - name: Terraform Plan
+      env:
+        IAM_USER_ARN: ${{ secrets.IAM_USER_ARN }}
+        MASTER_USERNAME_RDS: ${{ secrets.MASTER_USERNAME_RDS }}
+        MASTER_PASSWORD_RDS: ${{ secrets.MASTER_PASSWORD_RDS }}
+      run: terraform plan
+    
+    - name: Terraform Apply
+      if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+      env:
+        IAM_USER_ARN: ${{ secrets.IAM_USER_ARN }}
+        MASTER_USERNAME_RDS: ${{ secrets.MASTER_USERNAME_RDS }}
+        MASTER_PASSWORD_RDS: ${{ secrets.MASTER_PASSWORD_RDS }}
+      run: terraform apply -auto-approve
+    
+    - name: Upload Lambda Packages
+      uses: actions/upload-artifact@v3
+      with:
+        name: lambda-packages
+        path: packages/
+
+    - name: Invoke generate_file Lambda Function
+      run: |
+        aws lambda invoke \
+          --function-name generate_file \
+          --payload '{}' \
+          response.json
+        
+        echo "Lambda function invocation result:"
+        cat response.json
