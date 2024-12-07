@@ -62,7 +62,7 @@ resource "aws_lambda_event_source_mapping" "notify_user_trigger" {
   event_source_arn = var.sqs_queue_arn
   function_name    = aws_lambda_function.notify_user.arn
 
-  batch_size       = 10
+  batch_size       = 1
   enabled          = true
 
   depends_on = [
