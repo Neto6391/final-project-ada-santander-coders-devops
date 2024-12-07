@@ -46,11 +46,11 @@ resource "aws_s3_bucket_notification" "bucket_notification" {
 }
 
 resource "aws_lambda_permission" "allow_s3_to_call_lambda" {
-  statement_id  = "AllowExecutionFromS3Bucket"
+  statement_id  = "AllowS3ToInvokeLambda"
   action        = "lambda:InvokeFunction"
   function_name = aws_lambda_function.process_file.function_name
   principal     = "s3.amazonaws.com"
-  source_arn    = "arn:aws:s3:::${var.s3_bucket_arn}"
+  source_arn    = "arn:aws:s3:::${var.bucket_name}"
 }
 
 resource "aws_lambda_function" "notify_user" {
@@ -70,9 +70,12 @@ resource "aws_lambda_function" "notify_user" {
 resource "aws_lambda_event_source_mapping" "notify_user_trigger" {
   event_source_arn = var.sqs_queue_arn
   function_name    = aws_lambda_function.notify_user.arn
-
   batch_size       = 1
   enabled          = true
+
+  lifecycle {
+    ignore_changes = [id]
+  }
 
   depends_on = [
     aws_iam_role_policy.lambda_policy
