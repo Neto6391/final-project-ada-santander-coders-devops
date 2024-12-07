@@ -40,8 +40,7 @@ resource "aws_lambda_event_source_mapping" "process_file_trigger" {
   enabled          = true
 
   depends_on = [
-    aws_iam_role_policy.lambda_policy,
-    aws_sqs_queue.process_queue
+    aws_iam_role_policy.lambda_policy
   ]
 }
 
@@ -67,8 +66,7 @@ resource "aws_lambda_event_source_mapping" "notify_user_trigger" {
   enabled          = true
 
   depends_on = [
-    aws_iam_role_policy.lambda_policy,
-    aws_sqs_queue.notify_queue
+    aws_iam_role_policy.lambda_policy
   ]
 }
 
