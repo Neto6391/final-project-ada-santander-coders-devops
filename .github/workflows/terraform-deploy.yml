@@ -54,10 +54,8 @@ jobs:
           sed -i 's/IAM_USER_ARN_PLACEHOLDER/${{ secrets.IAM_USER_ARN }}/' ./terraform.tfvars 
           sed -i 's/MASTER_USERNAME_RDS_PLACEHOLDER/${{ secrets.MASTER_USERNAME_RDS }}/' ./terraform.tfvars 
           sed -i 's/MASTER_PASSWORD_RDS_PLACEHOLDER/${{ secrets.MASTER_PASSWORD_RDS }}/' ./terraform.tfvars
+      working-directory: ./terraform
 
-    - name: Change to terraform directory
-      run: cd terraform
-    
     - name: Terraform Init
       run: terraform init
       working-directory: ./terraform
