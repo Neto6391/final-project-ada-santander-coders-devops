@@ -32,16 +32,25 @@ resource "aws_lambda_function" "process_file" {
   }
 }
 
-resource "aws_lambda_event_source_mapping" "process_file_trigger" {
-  event_source_arn = var.s3_bucket_arn
-  function_name    = aws_lambda_function.process_file.arn
+resource "aws_s3_bucket_notification" "bucket_notification" {
+  bucket = var.bucket_name
 
-  batch_size       = 10
-  enabled          = true
+  lambda_function {
+    lambda_function_arn = aws_lambda_function.process_file.arn
+    events              = ["s3:ObjectCreated:*"]
+  }
 
   depends_on = [
-    aws_iam_role_policy.lambda_policy
+    aws_lambda_permission.allow_s3_to_call_lambda
   ]
+}
+
+resource "aws_lambda_permission" "allow_s3_to_call_lambda" {
+  statement_id  = "AllowExecutionFromS3Bucket"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.process_file.function_name
+  principal     = "s3.amazonaws.com"
+  source_arn    = "arn:aws:s3:::${var.s3_bucket_arn}"
 }
 
 resource "aws_lambda_function" "notify_user" {
