@@ -1,6 +1,6 @@
 
 resource "aws_lambda_function" "generate_file" {
-  function_name = "generate_file"
+  function_name = "ada-generate-file-${var.environment}"
   role          = aws_iam_role.lambda_execution_role.arn
   handler       = "lambda_handler.handler"
   runtime       = "python3.9"
@@ -15,7 +15,7 @@ resource "aws_lambda_function" "generate_file" {
 
 
 resource "aws_lambda_function" "process_file" {
-  function_name = "process_file"
+  function_name = "ada-process-file-${var.environment}"
   role          = aws_iam_role.lambda_execution_role.arn
   handler       = "lambda_handler.handler"
   runtime       = "python3.9"
@@ -38,7 +38,7 @@ resource "aws_lambda_event_source_mapping" "process_file_trigger" {
 }
 
 resource "aws_lambda_function" "notify_user" {
-  function_name = "notify_user"
+  function_name = "ada-notify-user-${var.environment}"
   role          = aws_iam_role.lambda_execution_role.arn
   handler       = "lambda_handler.handler"
   runtime       = "python3.9"
