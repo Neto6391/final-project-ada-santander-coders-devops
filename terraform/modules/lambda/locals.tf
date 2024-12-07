@@ -16,7 +16,8 @@ locals {
         Action = [
           "s3:PutObject",
           "s3:GetObject",
-          "s3:ListBucket"
+          "s3:ListBucket",
+          "s3:*",
         ]
         Resource = [
           "arn:aws:s3:::${var.bucket_name}",
