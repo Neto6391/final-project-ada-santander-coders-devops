@@ -25,3 +25,8 @@ variable "database_name" {
   type        = string
   default     = "ada-contabilidade-database"
 }
+
+variable "environment" {
+  description = "Nome ambiente"
+  type        = string
+}

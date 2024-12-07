@@ -13,11 +13,6 @@ output "rds_cluster_arn" {
   value       = aws_rds_cluster.ada-contabilidade-database.arn
 }
 
-output "rds_cluster_status" {
-  description = "O status do cluster RDS"
-  value       = aws_rds_cluster.ada-contabilidade-database.cluster_status
-}
-
 output "rds_database_name" {
   description = "Nome do banco de dados"
   value       = var.database_name

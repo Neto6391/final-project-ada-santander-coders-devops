@@ -1,5 +1,6 @@
 module "vpc" {
   source =  "../vpc"
+  environment = var.environment
 }
 
 resource "aws_rds_cluster" "ada-contabilidade-database" {
