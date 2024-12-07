@@ -53,4 +53,5 @@ module "lambda" {
   rds_db_name               = module.rds.rds_database_name
   rds_username        = var.master_username_rds
   rds_password         = var.master_password_rds
+  environment          =  var.environment
 }
