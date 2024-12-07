@@ -63,7 +63,7 @@ resource "aws_iam_role_policy" "lambda_policy" {
 }
 
 resource "aws_iam_role" "lambda_execution_role" {
-  name               = "lambda_execution_role"
+  name               = "lambda_execution_iam_role"
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
@@ -76,9 +76,4 @@ resource "aws_iam_role" "lambda_execution_role" {
       }
     ]
   })
-}
-
-resource "aws_iam_role_policy_attachment" "lambda_basic_policy" {
-  policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
-  role       = aws_iam_role.lambda_execution_role.name
 }
