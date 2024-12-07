@@ -84,22 +84,6 @@ jobs:
       run: terraform plan -var-file="terraform.tfvars" -parallelism=15
       working-directory: ./terraform
 
-    - name: Terraform destroy
-      run: terraform destroy -auto-approve
-      working-directory: ./terraform 
-
-
-    - name: Terraform Plan
-      env:
-        TF_LOG: DEBUG
-        TF_LOG_PATH: terraform-plan-debug.log
-        IAM_USER_ARN: ${{ secrets.IAM_USER_ARN }}
-        MASTER_USERNAME_RDS: ${{ secrets.MASTER_USERNAME_RDS }}
-        MASTER_PASSWORD_RDS: ${{ secrets.MASTER_PASSWORD_RDS }}
-      run: terraform plan -var-file="terraform.tfvars" -parallelism=15
-      working-directory: ./terraform
-
-
     - name: Upload Plan Logs
       uses: actions/upload-artifact@v3
       with:
