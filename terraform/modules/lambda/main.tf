@@ -35,6 +35,14 @@ resource "aws_lambda_function" "process_file" {
 resource "aws_lambda_event_source_mapping" "process_file_trigger" {
   event_source_arn = var.s3_bucket_arn
   function_name    = aws_lambda_function.process_file.arn
+
+  batch_size       = 10
+  enabled          = true
+
+  depends_on = [
+    aws_iam_role_policy.lambda_policy,
+    aws_sqs_queue.process_queue
+  ]
 }
 
 resource "aws_lambda_function" "notify_user" {
@@ -57,6 +65,11 @@ resource "aws_lambda_event_source_mapping" "notify_user_trigger" {
 
   batch_size       = 10
   enabled          = true
+
+  depends_on = [
+    aws_iam_role_policy.lambda_policy,
+    aws_sqs_queue.notify_queue
+  ]
 }
 
 resource "aws_iam_role_policy" "lambda_policy" {
@@ -68,14 +81,14 @@ resource "aws_iam_role_policy" "lambda_policy" {
 resource "aws_iam_role" "lambda_execution_role" {
   name               = "lambda_execution_role"
   assume_role_policy = jsonencode({
-    Version = "2012-10-17"
+    Version = "2012-10-17",
     Statement = [
       {
-        Action    = "sts:AssumeRole"
-        Effect    = "Allow"
+        Effect = "Allow",
         Principal = {
           Service = "lambda.amazonaws.com"
-        }
+        },
+        Action = "sts:AssumeRole"
       }
     ]
   })
