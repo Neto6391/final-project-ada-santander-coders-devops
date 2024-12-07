@@ -21,11 +21,6 @@ provider "aws" {
   }
 }
 
-module "vpc" {
-  source = "./modules/vpc"
-  environment = var.environment
-}
-
 module "s3" {
   source = "./modules/s3"
   environment = var.environment
