@@ -1,40 +1,36 @@
 #!/bin/bash
+set -e
 
 LAMBDA_DIR="./lambdas"
-
 PACKAGE_DIR="./packages"
 BASE_DIR="$(pwd)"
 
-mkdir -p $PACKAGE_DIR
-chmod -R 755 $PACKAGE_DIR
+rm -rf "$PACKAGE_DIR"
+mkdir -p "$PACKAGE_DIR"
+chmod 755 "$PACKAGE_DIR"
 
-for LAMBDA in $(ls $LAMBDA_DIR); do
-  echo "Iniciando empacotamento da $LAMBDA..."
+for LAMBDA in $(ls "$LAMBDA_DIR"); do
+  echo "Empacotando $LAMBDA..."
   
-  mkdir -p $BASE_DIR/$LAMBDA_DIR/$LAMBDA/package
+  TEMP_VENV=$(mktemp -d)
+  python3 -m venv "$TEMP_VENV"
+  source "$TEMP_VENV/bin/activate"
   
-  echo "Criando venv na $LAMBDA."
-  python3 -m venv $BASE_DIR/$LAMBDA_DIR/$LAMBDA/venv
+  pip install \
+    --no-cache-dir \
+    --no-deps \
+    --target="$BASE_DIR/$LAMBDA_DIR/$LAMBDA/package" \
+    -r "$BASE_DIR/$LAMBDA_DIR/$LAMBDA/requirements.txt"
   
-  echo "Ativando venv na $LAMBDA."
-  source $BASE_DIR/$LAMBDA_DIR/$LAMBDA/venv/bin/activate
+  cd "$BASE_DIR/$LAMBDA_DIR/$LAMBDA/package"
+  zip -qr "$BASE_DIR/$PACKAGE_DIR/$LAMBDA.zip" .
   
-  echo "Instalando dependencias na $LAMBDA."
-  pip install -r $BASE_DIR/$LAMBDA_DIR/$LAMBDA/requirements.txt
+  zip -qj "$BASE_DIR/$PACKAGE_DIR/$LAMBDA.zip" "$BASE_DIR/$LAMBDA_DIR/$LAMBDA/lambda_handler.py"
   
-  echo "Empacotando dependencias da $LAMBDA."
-  cp -r $BASE_DIR/$LAMBDA_DIR/$LAMBDA/venv/lib/python3.9/site-packages/* $BASE_DIR/$LAMBDA_DIR/$LAMBDA/package
-  
-  echo "Empacotando projeto da $LAMBDA."
-  cd $BASE_DIR/$LAMBDA_DIR/$LAMBDA/package
-  zip -r "$BASE_DIR/$PACKAGE_DIR/$LAMBDA.zip" .
-  cd - > /dev/null
-  
-  zip -g $PACKAGE_DIR/$LAMBDA.zip $BASE_DIR/$LAMBDA_DIR/$LAMBDA/lambda_handler.py
-  
-  echo "Desativando venv na $LAMBDA."
   deactivate
+  rm -rf "$TEMP_VENV"
   
-  echo "Limpando venv na $LAMBDA para economizar espaço."
-  rm -rf $BASE_DIR/$LAMBDA_DIR/$LAMBDA/venv
+  echo "Pacote $LAMBDA criado com sucesso."
 done
+
+echo "Empacotamento concluído!"
