@@ -9,7 +9,7 @@ resource "aws_rds_cluster" "ada-contabilidade-database" {
   db_subnet_group_name      = module.vpc.database_subnet_group
   engine                    = "mysql"
   engine_version            = "8.0.39"
-  db_cluster_instance_class = "db.t3.medium"
+  db_cluster_instance_class = "db.m5d.large"
   storage_type              = "gp3"
   allocated_storage         = var.allocated_storage
   iops                      = var.iops
