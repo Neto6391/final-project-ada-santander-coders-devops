@@ -49,11 +49,11 @@ jobs:
 
     - name: Replace placeholders with secrets 
       run: | 
-          sed -i 's/AWS_ACCESS_KEY_PLACEHOLDER/${{ secrets.AWS_ACCESS_KEY_ID }}/' ./terraform.tfvars 
-          sed -i 's/AWS_SECRET_KEY_PLACEHOLDER/${{ secrets.AWS_SECRET_ACCESS_KEY }}/' ./terraform.tfvars 
-          sed -i 's/IAM_USER_ARN_PLACEHOLDER/${{ secrets.IAM_USER_ARN }}/' ./terraform.tfvars 
-          sed -i 's/MASTER_USERNAME_RDS_PLACEHOLDER/${{ secrets.MASTER_USERNAME_RDS }}/' ./terraform.tfvars 
-          sed -i 's/MASTER_PASSWORD_RDS_PLACEHOLDER/${{ secrets.MASTER_PASSWORD_RDS }}/' ./terraform.tfvars
+        sed -i "s#AWS_ACCESS_KEY_PLACEHOLDER#${{ secrets.AWS_ACCESS_KEY_ID }}#" ./terraform.tfvars
+        sed -i "s#AWS_SECRET_KEY_PLACEHOLDER#${{ secrets.AWS_SECRET_ACCESS_KEY }}#" ./terraform.tfvars
+        sed -i "s#IAM_USER_ARN_PLACEHOLDER#${{ secrets.IAM_USER_ARN }}#" ./terraform.tfvars
+        sed -i "s#MASTER_USERNAME_RDS_PLACEHOLDER#${{ secrets.MASTER_USERNAME_RDS }}#" ./terraform.tfvars
+        sed -i "s#MASTER_PASSWORD_RDS_PLACEHOLDER#${{ secrets.MASTER_PASSWORD_RDS }}#" ./terraform.tfvars
       working-directory: ./terraform
 
     - name: Terraform Init
