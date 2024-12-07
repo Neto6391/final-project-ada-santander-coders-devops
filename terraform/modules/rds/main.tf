@@ -7,7 +7,7 @@ resource "aws_rds_cluster" "ada-contabilidade-database" {
   cluster_identifier        = "ada-contabilidade-database"
   availability_zones        = module.vpc.availability_zones
   db_subnet_group_name      = module.vpc.database_subnet_group
-  engine                    = "mysql"
+  engine                    = "postgresql"
   engine_version            = "8.0.39"
   db_cluster_instance_class = "db.m5d.large"
   storage_type              = "io2"
