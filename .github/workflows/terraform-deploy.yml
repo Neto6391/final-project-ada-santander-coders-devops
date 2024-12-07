@@ -59,6 +59,7 @@ jobs:
     
     - name: Terraform Apply
       working-directory: ./terraform
+
       if: github.ref == 'refs/heads/main' && github.event_name == 'push'
       env:
         IAM_USER_ARN: ${{ secrets.IAM_USER_ARN }}
