@@ -23,7 +23,7 @@ variable "allocated_storage" {
 variable "database_name" {
   description = "Nome do banco de dados"
   type        = string
-  default     = "ada-contabilidade-database"
+  default     = "contabilidade2024"
 }
 
 variable "environment" {
