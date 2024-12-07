@@ -4,7 +4,7 @@ resource "aws_lambda_function" "generate_file" {
   role          = aws_iam_role.lambda_execution_role.arn
   handler       = "lambda_handler.handler"
   runtime       = "python3.9"
-  filename      = "../../../packages/generate_file.zip"
+  filename      = "../packages/generate_file.zip"
 
   environment {
     variables = {
@@ -19,7 +19,7 @@ resource "aws_lambda_function" "process_file" {
   role          = aws_iam_role.lambda_execution_role.arn
   handler       = "lambda_handler.handler"
   runtime       = "python3.9"
-  filename      = "../../../packages/process_file.zip"
+  filename      = "../packages/process_file.zip"
 
   environment {
     variables = {
@@ -42,7 +42,7 @@ resource "aws_lambda_function" "notify_user" {
   role          = aws_iam_role.lambda_execution_role.arn
   handler       = "lambda_handler.handler"
   runtime       = "python3.9"
-  filename      = "../../../packages/notify_user.zip"
+  filename      = "../packages/notify_user.zip"
 
   environment {
     variables = {
