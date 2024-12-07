@@ -51,10 +51,6 @@ resource "aws_lambda_function" "notify_user" {
   }
 }
 
-data "aws_db_subnet_group" "existing" {
-  name = "ada-contabilidade-database"
-}
-
 resource "aws_lambda_event_source_mapping" "notify_user_trigger" {
   event_source_arn = var.sqs_queue_arn
   function_name    = aws_lambda_function.notify_user.arn
