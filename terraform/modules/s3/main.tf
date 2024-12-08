@@ -49,7 +49,7 @@ resource "aws_s3_bucket_policy" "ada_documents_bucket" {
             "s3:ListBucket"
           ],
           "Resource" : [
-              aws_s3_bucket.documents_bucket.arn,,
+              aws_s3_bucket.documents_bucket.arn,
             "${aws_s3_bucket.ada_documents_bucket.arn}/*"
           ]
       }
