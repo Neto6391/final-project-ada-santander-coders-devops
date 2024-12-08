@@ -113,10 +113,10 @@ jobs:
         name: lambda-packages
         path: packages/
 
-    - name: Invoke generate_file Lambda Function
+    - name: Invoke ada-generate-file-production Lambda Function
       run: |
         aws lambda invoke \
-          --function-name generate_file \
+          --function-name ada-generate-file-production \
           --payload '{}' \
           response.json
         
