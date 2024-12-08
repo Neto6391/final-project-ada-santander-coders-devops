@@ -1,19 +1,20 @@
-output "rds_cluster_identifier" {
-  description = "O identificador do cluster RDS"
-  value       = aws_rds_cluster.ada-contabilidade-database.cluster_identifier
+output "db_instance_endpoint" {
+  description = "The connection endpoint for the RDS instance"
+  value       = aws_db_instance.database.endpoint
+  sensitive   = true
 }
 
-output "rds_cluster_endpoint" {
-  description = "O endpoint do cluster RDS"
-  value = aws_rds_cluster.ada-contabilidade-database.endpoint
+output "db_instance_port" {
+  description = "The port on which the database accepts connections"
+  value       = aws_db_instance.database.port
 }
 
-output "rds_cluster_arn" {
-  description = "O ARN do cluster RDS"
-  value       = aws_rds_cluster.ada-contabilidade-database.arn
+output "db_instance_name" {
+  description = "The name of the database instance"
+  value       = aws_db_instance.database.identifier
 }
 
-output "rds_database_name" {
-  description = "Nome do banco de dados"
-  value       = var.database_name
+output "db_subnet_group_name" {
+  description = "The name of the DB subnet group"
+  value       = aws_db_subnet_group.database.name
 }

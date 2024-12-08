@@ -1,9 +1,9 @@
-output "process_queue_arn" {
-  value       = aws_sqs_queue.process_queue.arn
-  description = "ARN da fila de processamento"
+output "queue_arns" {
+  description = "ARNs das filas SQS criadas"
+  value       = { for name, queue in aws_sqs_queue.queues : name => queue.arn }
 }
 
-output "notify_queue_arn" {
-  value       = aws_sqs_queue.notify_queue.arn
-  description = "ARN da fila de notificações"
+output "queue_urls" {
+  description = "URLs das filas SQS criadas"
+  value       = { for name, queue in aws_sqs_queue.queues : name => queue.url }
 }

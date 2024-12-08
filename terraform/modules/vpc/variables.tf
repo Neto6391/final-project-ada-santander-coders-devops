@@ -1,16 +1,20 @@
 variable "vpc_cidr" {
-  description = "VPC CIDR bloco"
+  description = "CIDR block for the VPC"
   type        = string
-  default     = "10.0.0.0/16"
-}
-
-variable "availability_zones" {
-  description = "AZs para usar"
-  type        = list(string)
-  default     = ["us-east-1a", "us-east-1b", "us-east-1c"]
 }
 
 variable "environment" {
-  description = "Nome ambiente"
+  description = "Environment name (e.g., dev, staging, prod)"
   type        = string
+}
+
+variable "availability_zones" {
+  description = "List of availability zones to use for subnets"
+  type        = list(string)
+}
+
+variable "tags" {
+  description = "Additional tags to apply to all resources"
+  type        = map(string)
+  default     = {}
 }

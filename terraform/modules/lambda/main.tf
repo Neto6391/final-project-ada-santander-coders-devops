@@ -1,34 +1,56 @@
-
-resource "aws_lambda_function" "generate_file" {
-  function_name = "ada-generate-file-${var.environment}"
-  role          = aws_iam_role.lambda_execution_role.arn
-  handler       = "lambda_handler.handler"
-  runtime       = "python3.9"
-  filename      = "../packages/generate_file.zip"
-
-  environment {
-    variables = {
-      BUCKET_NAME = var.bucket_name
+locals {
+  lambda_functions = {
+    "generate_file" = {
+      create        = true
+      function_name = "ada-generate-file-${var.environment}"
+      filename     = "../packages/generate_file.zip"
+      env_vars     = { 
+        BUCKET_NAME = var.bucket_name 
+      }
     }
+    "process_file" = {
+      create        = true
+      function_name = "ada-process-file-${var.environment}"
+      filename     = "../packages/process_file.zip"
+      env_vars     = {
+        DB_USERNAME     = var.rds_username
+        DB_PASSWORD     = var.rds_password
+        DB_HOST         = var.rds_cluster_endpoint
+        DB_NAME         = var.rds_db_name
+        SNS_TOPIC_ARN   = var.sns_topic_arn
+      }
+    }
+    "notify_user" = {
+      create        = var.create_notify_user_lambda
+      function_name = "ada-notify-user-${var.environment}"
+      filename     = "../packages/notify_user.zip"
+      env_vars     = { 
+        SNS_TOPIC_ARN = var.sns_topic_arn 
+      }
+    }
+  }
+
+  process_file_lambda = {
+    arn  = [for k, v in aws_lambda_function.ada_lambda : v.arn if k == "process_file"][0]
+    name = [for k, v in aws_lambda_function.ada_lambda : v.function_name if k == "process_file"][0]
+  }
+
+  notify_user_lambda = {
+    arn  = [for k, v in aws_lambda_function.ada_lambda : v.arn if k == "notify_user"][0]
   }
 }
 
+resource "aws_lambda_function" "ada_lambda" {
+  for_each = { for k, v in local.lambda_functions : k => v if v.create }
 
-resource "aws_lambda_function" "process_file" {
-  function_name = "ada-process-file-${var.environment}"
+  function_name = each.value.function_name
   role          = aws_iam_role.lambda_execution_role.arn
-  handler       = "lambda_handler.handler"
-  runtime       = "python3.9"
-  filename      = "../packages/process_file.zip"
+  handler       = local.lambda_common_config.handler
+  runtime       = local.lambda_common_config.runtime
+  filename      = each.value.filename
 
   environment {
-    variables = {
-      DB_USERNAME = var.rds_username
-      DB_PASSWORD = var.rds_password
-      DB_HOST = var.rds_cluster_endpoint
-      DB_NAME = var.rds_db_name
-      SNS_TOPIC_ARN = var.sns_topic_arn
-    }
+    variables = each.value.env_vars
   }
 }
 
@@ -36,70 +58,28 @@ resource "aws_s3_bucket_notification" "bucket_notification" {
   bucket = var.bucket_name
 
   lambda_function {
-    lambda_function_arn = aws_lambda_function.process_file.arn
+    lambda_function_arn = local.process_file_lambda.arn
     events              = ["s3:ObjectCreated:*"]
   }
 
-  depends_on = [
-    aws_lambda_permission.allow_s3_to_call_lambda
-  ]
+  depends_on = [aws_lambda_permission.allow_s3_to_call_lambda]
 }
 
 resource "aws_lambda_permission" "allow_s3_to_call_lambda" {
   statement_id  = "AllowS3ToInvokeLambda"
   action        = "lambda:InvokeFunction"
-  function_name = aws_lambda_function.process_file.function_name
+  function_name = local.process_file_lambda.name
   principal     = "s3.amazonaws.com"
   source_arn    = "arn:aws:s3:::${var.bucket_name}"
 }
 
-resource "aws_lambda_function" "notify_user" {
-  function_name = "ada-notify-user-${var.environment}"
-  role          = aws_iam_role.lambda_execution_role.arn
-  handler       = "lambda_handler.handler"
-  runtime       = "python3.9"
-  filename      = "../packages/notify_user.zip"
-
-  environment {
-    variables = {
-      SNS_TOPIC_ARN = var.sns_topic_arn
-    }
-  }
-}
-
 resource "aws_lambda_event_source_mapping" "notify_user_trigger" {
+  count = var.create_event_source_mapping ? 1 : 0
+
   event_source_arn = var.sqs_queue_arn
-  function_name    = aws_lambda_function.notify_user.arn
+  function_name    = local.notify_user_lambda.arn
   batch_size       = 1
   enabled          = true
 
-  lifecycle {
-    ignore_changes = [id]
-  }
-
-  depends_on = [
-    aws_iam_role_policy.lambda_policy
-  ]
-}
-
-resource "aws_iam_role_policy" "lambda_policy" {
-  name   = "lambda_policy"
-  role   = aws_iam_role.lambda_execution_role.id
-  policy = local.lambda_policy
-}
-
-resource "aws_iam_role" "lambda_execution_role" {
-  name               = "lambda_execution_role"
-  assume_role_policy = jsonencode({
-    Version = "2012-10-17",
-    Statement = [
-      {
-        Effect = "Allow",
-        Principal = {
-          Service = "lambda.amazonaws.com"
-        },
-        Action = "sts:AssumeRole"
-      }
-    ]
-  })
+  depends_on = [aws_iam_role_policy.lambda_policy]
 }

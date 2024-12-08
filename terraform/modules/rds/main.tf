@@ -1,21 +1,62 @@
-module "vpc" {
-  source =  "../vpc"
-  environment = var.environment
+resource "aws_db_subnet_group" "database" {
+  name       = "${var.environment}-db-subnet-group"
+  subnet_ids = var.subnet_ids
+
+  tags = merge(
+    var.tags,
+    {
+      Name        = "${var.environment}-db-subnet-group"
+      Environment = var.environment
+      Managed_by  = "Terraform"
+    }
+  )
 }
 
-resource "aws_rds_cluster" "ada-contabilidade-database" {
-  cluster_identifier        = "ada-contabilidade-database"
-  availability_zones        = module.vpc.availability_zones
-  db_subnet_group_name      = module.vpc.database_subnet_group
-  engine                    = "postgres"
-  engine_version            = "13.11"
-  db_cluster_instance_class = "db.m5d.large"
-  storage_type              = "io2"
-  allocated_storage         = var.allocated_storage
-  iops                      = var.iops
-  master_username           = var.master_username
-  master_password           = var.master_password
-  skip_final_snapshot       = true
-  vpc_security_group_ids  = [module.vpc.database_security_group]
-  database_name           = var.database_name
+resource "aws_db_parameter_group" "database" {
+  name   = "${var.environment}-db-parameter-group"
+  family = var.db_parameter_group_family
+
+  parameter {
+    name  = "max_connections"
+    value = var.max_connections
+  }
+
+  tags = merge(
+    var.tags,
+    {
+      Name        = "${var.environment}-db-parameter-group"
+      Environment = var.environment
+      Managed_by  = "Terraform"
+    }
+  )
+}
+
+resource "aws_db_instance" "database" {
+  identifier = "${var.environment}-database"
+  engine         = var.db_engine
+  engine_version = var.db_engine_version
+  username = var.db_username
+  password = var.db_password
+  db_subnet_group_name   = aws_db_subnet_group.database.name
+  vpc_security_group_ids = [var.database_security_group_id]
+  instance_class      = var.db_instance_class
+  allocated_storage   = var.allocated_storage
+  storage_type        = var.storage_type
+  backup_retention_period = var.backup_retention_period
+  backup_window           = var.backup_window
+  maintenance_window      = var.maintenance_window
+  multi_az               = var.multi_az
+  publicly_accessible    = false
+  deletion_protection    = var.deletion_protection
+  skip_final_snapshot    = var.skip_final_snapshot
+  parameter_group_name   = aws_db_parameter_group.database.name
+
+  tags = merge(
+    var.tags,
+    {
+      Name        = "${var.environment}-database"
+      Environment = var.environment
+      Managed_by  = "Terraform"
+    }
+  )
 }
