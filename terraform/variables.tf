@@ -42,3 +42,8 @@ variable "master_password_rds" {
   type        = string
   sensitive   = true
 }
+
+variable "email_sns" {
+  description = "Email para inscrição sns"
+  type        = string
+}
