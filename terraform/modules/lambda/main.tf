@@ -1,18 +1,24 @@
 locals {
+  # Definindo configurações comuns para as funções Lambda
+  lambda_common_config = {
+    handler = "index.lambda_handler"  # Altere para o caminho do handler correto
+    runtime = "python3.8"             # Defina o runtime apropriado
+  }
+
   lambda_functions = {
     "generate_file" = {
       create        = true
       function_name = "ada-generate-file-${var.environment}"
-      filename     = "../packages/generate_file.zip"
-      env_vars     = { 
+      filename      = "../packages/generate_file.zip"
+      env_vars      = { 
         BUCKET_NAME = var.bucket_name 
       }
     }
     "process_file" = {
       create        = true
       function_name = "ada-process-file-${var.environment}"
-      filename     = "../packages/process_file.zip"
-      env_vars     = {
+      filename      = "../packages/process_file.zip"
+      env_vars      = {
         DB_USERNAME     = var.rds_username
         DB_PASSWORD     = var.rds_password
         DB_HOST         = var.rds_cluster_endpoint
@@ -23,8 +29,8 @@ locals {
     "notify_user" = {
       create        = var.create_notify_user_lambda
       function_name = "ada-notify-user-${var.environment}"
-      filename     = "../packages/notify_user.zip"
-      env_vars     = { 
+      filename      = "../packages/notify_user.zip"
+      env_vars      = { 
         SNS_TOPIC_ARN = var.sns_topic_arn 
       }
     }
@@ -45,8 +51,8 @@ resource "aws_lambda_function" "ada_lambda" {
 
   function_name = each.value.function_name
   role          = aws_iam_role.lambda_execution_role.arn
-  handler       = local.lambda_common_config.handler
-  runtime       = local.lambda_common_config.runtime
+  handler       = "lambda_handler.lambda_handler"
+  runtime       = "python3.8"
   filename      = each.value.filename
 
   environment {
