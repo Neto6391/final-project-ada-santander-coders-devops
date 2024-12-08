@@ -82,7 +82,7 @@ module "lambda" {
 
   environment           = var.environment
   bucket_name           = module.s3.bucket_name
-  sqs_queue_arn         = module.sqs.queue_arns["notify-queue"]
+  sqs_queue_arn         = module.sqs.queue_arns["notify"]
   sns_topic_arn         = module.sns.sns_topic_arn
   rds_username          = var.master_username_rds
   rds_password          = var.master_password_rds
