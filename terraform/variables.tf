@@ -4,6 +4,12 @@ variable "environment" {
   default     = "production"
 }
 
+variable "project_name" {
+  description  = "Descrição projeto"
+  type         =  string
+  default      =  "ada_contabilidade"
+}
+
 variable "aws_access_key" {
   description = "AWS Access Key"
   type        = string

@@ -1,49 +1,69 @@
-variable "sqs_queue_arn" {
-  description = "ARN da fila SQS"
-  type        = string
-}
-
-variable "sns_topic_arn" {
-  description = "ARN do tópico SNS"
-  type        = string
-}
-
-variable "rds_instance_arn" {
-  description = "ARN da instância RDS"
-  type        = string
-}
-
-variable "rds_cluster_endpoint" {
-  description = "Endpoint da instância RDS"
+variable "environment" {
+  description = "Ambiente de execução (dev, staging, prod, etc.)."
   type        = string
 }
 
 variable "bucket_name" {
-  description = "Nome do bucket S3"
-  type        = string
-}
-
-variable "s3_bucket_arn" {
-  description = "ARN do bucket S3"
+  description = "Nome do bucket S3 associado."
   type        = string
 }
 
 variable "rds_username" {
-  description = "Username RDS"
+  description = "Usuário do banco de dados RDS."
   type        = string
 }
 
 variable "rds_password" {
-  description = "Password RDS"
+  description = "Senha do banco de dados RDS."
+  type        = string
+  sensitive   = true
+}
+
+variable "rds_cluster_endpoint" {
+  description = "Endpoint do cluster RDS."
   type        = string
 }
 
 variable "rds_db_name" {
-  description = "Nome do banco de dados"
+  description = "Nome do banco de dados RDS."
   type        = string
 }
 
-variable "environment" {
-  description = "Nome ambiente"
+variable "sns_topic_arn" {
+  description = "ARN do tópico SNS associado."
+  type        = string
+}
+
+variable "create_notify_user_lambda" {
+  description = "Determina se a função Lambda notify_user será criada."
+  type        = bool
+  default     = true
+}
+
+variable "sqs_queue_arn" {
+  description = "ARN da fila SQS para o mapeamento de eventos."
+  type        = string
+  default     = null
+}
+
+variable "create_event_source_mapping" {
+  description = "Define se o mapeamento de eventos para a notify_user será criado."
+  type        = bool
+  default     = true
+}
+
+variable "bucket_name" {
+  description = "Nome do bucket S3 associado."
+  type        = string
+}
+
+variable "sqs_queue_arn" {
+  description = "ARN da fila SQS para permissões."
+  type        = string
+  default     = null
+}
+
+variable "sns_topic_arn" {
+  description = "ARN do tópico SNS associado."
   type        = string
 }

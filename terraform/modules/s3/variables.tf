@@ -1,15 +1,14 @@
 variable "bucket_name" {
-  description = "Bucket S3 da Aplicação"
+  description = "Nome do bucket S3"
   type        = string
-  default     = "application-ada-contabilidade-bucket-public-s3"
 }
 
 variable "environment" {
-  description = "Nome ambiente"
+  description = "Nome do ambiente"
   type        = string
 }
 
 variable "iam_user_arn" {
-  description = "IAM User ARN passado por GitHub Secrets"
+  description = "ARN do usuário IAM usado para políticas S3"
   type        = string
 }
