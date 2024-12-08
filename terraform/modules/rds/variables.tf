@@ -60,12 +60,6 @@ variable "db_password" {
   sensitive   = true
 }
 
-variable "db_parameter_group_family" {
-  description = "Parameter group family for the database"
-  type        = string
-  default     = "postgres15"
-}
-
 variable "max_connections" {
   description = "Maximum number of database connections"
   type        = number

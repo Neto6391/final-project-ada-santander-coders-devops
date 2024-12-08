@@ -12,27 +12,6 @@ resource "aws_db_subnet_group" "database" {
   )
 }
 
-resource "aws_db_parameter_group" "database" {
-  name   = "${var.environment}-db-parameter-group"
-  family = var.db_parameter_group_family
-
-  apply_immediately = false
-
-  parameter {
-    name  = "max_connections"
-    value = var.max_connections
-  }
-
-  tags = merge(
-    var.tags,
-    {
-      Name        = "${var.environment}-db-parameter-group"
-      Environment = var.environment
-      Managed_by  = "Terraform"
-    }
-  )
-}
-
 resource "aws_db_instance" "database" {
   identifier = "${var.environment}-database"
   engine         = var.db_engine
@@ -51,7 +30,6 @@ resource "aws_db_instance" "database" {
   publicly_accessible    = false
   deletion_protection    = var.deletion_protection
   skip_final_snapshot    = var.skip_final_snapshot
-  parameter_group_name   = aws_db_parameter_group.database.name
   db_name          = var.database_name
 
   tags = merge(
