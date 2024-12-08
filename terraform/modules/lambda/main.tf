@@ -86,6 +86,4 @@ resource "aws_lambda_event_source_mapping" "notify_user_trigger" {
   function_name    = local.notify_user_lambda.arn
   batch_size       = 1
   enabled          = true
-
-  depends_on = [aws_iam_role_policy.lambda_policy]
 }
