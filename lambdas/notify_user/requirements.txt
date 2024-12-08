@@ -1,1 +1,3 @@
+typing_extensions
 boto3
+requests

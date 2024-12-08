@@ -1,2 +1,4 @@
+typing_extensions 
 boto3
 Faker
+requests
