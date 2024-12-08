@@ -3,11 +3,6 @@ variable "environment" {
   type        = string
 }
 
-variable "bucket_name" {
-  description = "Nome do bucket S3 associado."
-  type        = string
-}
-
 variable "rds_username" {
   description = "Usuário do banco de dados RDS."
   type        = string
@@ -40,12 +35,6 @@ variable "create_notify_user_lambda" {
   default     = true
 }
 
-variable "sqs_queue_arn" {
-  description = "ARN da fila SQS para o mapeamento de eventos."
-  type        = string
-  default     = null
-}
-
 variable "create_event_source_mapping" {
   description = "Define se o mapeamento de eventos para a notify_user será criado."
   type        = bool
@@ -61,9 +50,4 @@ variable "sqs_queue_arn" {
   description = "ARN da fila SQS para permissões."
   type        = string
   default     = null
-}
-
-variable "sns_topic_arn" {
-  description = "ARN do tópico SNS associado."
-  type        = string
 }
