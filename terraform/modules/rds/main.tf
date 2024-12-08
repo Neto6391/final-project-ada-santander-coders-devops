@@ -50,6 +50,7 @@ resource "aws_db_instance" "database" {
   deletion_protection    = var.deletion_protection
   skip_final_snapshot    = var.skip_final_snapshot
   parameter_group_name   = aws_db_parameter_group.database.name
+  db_name          = var.database_name
 
   tags = merge(
     var.tags,
