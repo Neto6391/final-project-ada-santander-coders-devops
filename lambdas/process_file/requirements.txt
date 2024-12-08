@@ -3,4 +3,3 @@ boto3
 SQLAlchemy
 psycopg2-binary
 requests
-logging
