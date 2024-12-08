@@ -16,6 +16,8 @@ resource "aws_db_parameter_group" "database" {
   name   = "${var.environment}-db-parameter-group"
   family = var.db_parameter_group_family
 
+  apply_immediately = false
+
   parameter {
     name  = "max_connections"
     value = var.max_connections
