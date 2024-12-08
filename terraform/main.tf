@@ -75,6 +75,7 @@ module "sqs" {
 
 module "sns" {
   source = "./modules/sns"
+  email  =  var.email_sns
 }
 
 module "lambda" {
