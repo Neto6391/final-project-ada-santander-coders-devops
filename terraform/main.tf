@@ -46,6 +46,7 @@ module "rds" {
   allocated_storage     = 20
   backup_retention_period = 1
   multi_az              = false
+  database_name         = "ada-database-${var.environment}"
   tags = {
     Project     = var.project_name
     ManagedBy   = "Terraform"
@@ -82,11 +83,11 @@ module "lambda" {
   environment           = var.environment
   bucket_name           = module.s3.bucket_name
   sqs_queue_arn         = module.sqs.queue_arns["notify-queue"]
-  sns_topic_arn         = module.sns.topic_arn
-  rds_username          = var.rds_username
-  rds_password          = var.rds_password
+  sns_topic_arn         = module.sns.sns_topic_arn
+  rds_username          = var.master_username_rds
+  rds_password          = var.master_password_rds
   rds_cluster_endpoint  = module.rds.db_instance_endpoint
-  rds_db_name           = var.rds_db_name
+  rds_db_name           = "ada-database-${var.environment}"
   create_notify_user_lambda = true
   create_event_source_mapping = true
 }

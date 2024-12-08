@@ -3,6 +3,11 @@ variable "environment" {
   type        = string
 }
 
+variable "database_name" {
+  description = "Database name"
+  type        = string
+}
+
 variable "subnet_ids" {
   description = "List of subnet IDs for the DB subnet group"
   type        = list(string)

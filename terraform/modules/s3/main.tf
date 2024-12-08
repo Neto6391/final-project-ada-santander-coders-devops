@@ -8,7 +8,7 @@ resource "aws_s3_bucket" "ada_documents_bucket" {
 }
 
 resource "aws_s3_bucket_public_access_block" "bucket_access_block" {
-  bucket = aws_s3_bucket.documents_bucket.id
+  bucket = aws_s3_bucket.ada_documents_bucket.id
 
   block_public_acls       = true
   block_public_policy     = true
@@ -49,7 +49,7 @@ resource "aws_s3_bucket_policy" "ada_documents_bucket" {
             "s3:ListBucket"
           ],
           "Resource" : [
-              aws_s3_bucket.documents_bucket.arn,
+              aws_s3_bucket.ada_documents_bucket.arn,
             "${aws_s3_bucket.ada_documents_bucket.arn}/*"
           ]
       }
