@@ -46,7 +46,7 @@ module "rds" {
   allocated_storage     = 20
   backup_retention_period = 1
   multi_az              = false
-  database_name         = "ada-database-${var.environment}"
+  database_name         = "contabilidade2025"
   tags = {
     Project     = var.project_name
     ManagedBy   = "Terraform"
@@ -87,7 +87,7 @@ module "lambda" {
   rds_username          = var.master_username_rds
   rds_password          = var.master_password_rds
   rds_cluster_endpoint  = module.rds.db_instance_endpoint
-  rds_db_name           = "ada-database-${var.environment}"
+  rds_db_name           = "contabilidade2025"
   create_notify_user_lambda = true
   create_event_source_mapping = true
 }
