@@ -93,7 +93,7 @@ variable "multi_az" {
 variable "deletion_protection" {
   description = "Enable deletion protection"
   type        = bool
-  default     = true
+  default     = false
 }
 
 variable "skip_final_snapshot" {
