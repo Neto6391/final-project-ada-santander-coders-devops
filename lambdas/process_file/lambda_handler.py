@@ -1,95 +1,66 @@
 import json
 import os
 import boto3
-from sqlalchemy import create_engine, Column, Integer, String
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy.exc import SQLAlchemyError
 import logging
+from datetime import datetime
+from typing import Dict, Any
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger()
 
-Base = declarative_base()
+s3_client = boto3.client('s3')
+dynamodb = boto3.resource('dynamodb')
+sns_client = boto3.client('sns')
 
-class FileMetadata(Base):
-    __tablename__ = 'file_metadata'
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    filename = Column(String(255), nullable=False)
-    num_lines = Column(Integer, nullable=False)
-
-class DatabaseConnectionCache:
-    _engine = None
-    
-    @classmethod
-    def get_engine(cls):
-        if not cls._engine:
-            try:
-                DB_USERNAME = os.environ.get('DB_USERNAME')
-                DB_PASSWORD = os.environ.get('DB_PASSWORD')
-                DB_HOST = os.environ.get('DB_HOST')
-                DB_NAME = os.environ.get('DB_NAME')
-                
-                connection_string = f"postgresql://{DB_USERNAME}:{DB_PASSWORD}@{DB_HOST}/{DB_NAME}"
-                cls._engine = create_engine(
-                    connection_string, 
-                    pool_pre_ping=True, 
-                    pool_recycle=3600,
-                    connect_args={'connect_timeout': 5} 
-                )
-                Base.metadata.create_all(cls._engine)
-            except Exception as e:
-                logger.error(f"Erro de conexão com banco de dados: {e}")
-                raise
-        return cls._engine
-
-def process_file(s3_client, filename, bucket, sns_client, SNS_TOPIC_ARN):
-    local_file_path = f"/tmp/{filename}"
-    
+def process_file(bucket: str, filename: str) -> Dict[str, Any]:
     try:
+        local_file_path = f"/tmp/{filename}"
         s3_client.download_file(bucket, filename, local_file_path)
         
         with open(local_file_path, 'rb') as f:
             num_lines = sum(1 for _ in f)
         
-        engine = DatabaseConnectionCache.get_engine()
-        Session = sessionmaker(bind=engine)
+        table_name = os.environ.get('DYNAMODB_TABLE')
+        table = dynamodb.Table(table_name)
         
-        with Session() as session:
-            file_metadata = FileMetadata(
-                filename=filename,
-                num_lines=num_lines
+        item = {
+            'file_id': filename,
+            'filename': filename,
+            'num_lines': num_lines,
+            'processed_at': datetime.now().isoformat(),
+            'status': 'Processed Successfully'
+        }
+        
+        table.put_item(Item=item)
+        
+        sns_topic_arn = os.environ.get('SNS_TOPIC_ARN')
+        if sns_topic_arn:
+            sns_client.publish(
+                TopicArn=sns_topic_arn,
+                Message=json.dumps({
+                    'filename': filename,
+                    'num_lines': num_lines,
+                    'status': 'Processed Successfully'
+                }),
+                Subject='File Processing Completed'
             )
-            session.add(file_metadata)
-            session.commit()
         
-        sns_client.publish(
-            TopicArn=SNS_TOPIC_ARN,
-            Message=json.dumps({
-                'filename': filename,
-                'num_lines': num_lines,
-                'status': 'Processado com sucesso'
-            }),
-            Subject='Processamento de Arquivo Concluído'
-        )
-        
-        return num_lines
+        return {
+            'filename': filename,
+            'num_lines': num_lines,
+            'status': 'Success'
+        }
     
     except Exception as e:
-        logger.error(f"Erro no processamento do arquivo {filename}: {e}")
+        logger.error(f"Error processing file {filename}: {e}")
         raise
     finally:
         try:
             os.remove(local_file_path)
-        except FileNotFoundError:
+        except (FileNotFoundError, UnboundLocalError):
             pass
 
 def lambda_handler(event, context):
-    s3_client = boto3.client('s3')
-    sns_client = boto3.client('sns')
-    
-    SNS_TOPIC_ARN = os.environ.get('SNS_TOPIC_ARN')
-    
     try:
         processed_files = []
         
@@ -97,27 +68,24 @@ def lambda_handler(event, context):
             bucket = record['s3']['bucket']['name']
             filename = record['s3']['object']['key']
             
-            num_lines = process_file(s3_client, filename, bucket, sns_client, SNS_TOPIC_ARN)
-            processed_files.append({
-                'filename': filename,
-                'num_lines': num_lines
-            })
+            result = process_file(bucket, filename)
+            processed_files.append(result)
         
         return {
             'statusCode': 200,
             'body': json.dumps({
-                'message': 'Arquivos processados com sucesso',
+                'message': 'Files processed successfully',
                 'processed_files': processed_files
             })
         }
     
     except Exception as e:
-        logger.error(f"Erro global: {e}")
+        logger.error(f"Global processing error: {e}")
         
         return {
             'statusCode': 500,
             'body': json.dumps({
-                'message': 'Erro ao processar arquivos',
+                'message': 'Error processing files',
                 'error': str(e)
             })
         }

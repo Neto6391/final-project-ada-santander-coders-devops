@@ -21,9 +21,9 @@ resource "aws_iam_policy" "lambda_policy" {
     Statement = [
       {
         Action = [
-        "s3:GetObject",
-        "s3:PutObject",
-        "s3:DeleteObject",
+          "s3:GetObject",
+          "s3:PutObject",
+          "s3:DeleteObject",
         ]
         Effect   = "Allow"
         Resource = "arn:aws:s3:::${var.bucket_name}/*"
@@ -53,10 +53,10 @@ resource "aws_iam_policy" "lambda_policy" {
         Resource = "arn:aws:logs:*:*:*"
       },
       {
-        Action   = [
-            "ec2:CreateNetworkInterface",
-            "ec2:DescribeNetworkInterfaces",
-            "ec2:DeleteNetworkInterface"
+        Action = [
+          "ec2:CreateNetworkInterface",
+          "ec2:DescribeNetworkInterfaces",
+          "ec2:DeleteNetworkInterface",
         ]
         Effect   = "Allow"
         Resource = "*"
@@ -66,11 +66,22 @@ resource "aws_iam_policy" "lambda_policy" {
           "lambda:PublishLayerVersion",
           "lambda:DeleteLayerVersion",
           "lambda:GetLayerVersion",
-          "lambda:ListLayerVersions"
+          "lambda:ListLayerVersions",
         ]
         Effect   = "Allow"
         Resource = "*"
-    }
+      },
+      {
+        Action = [
+          "dynamodb:PutItem",
+          "dynamodb:GetItem",
+          "dynamodb:Query",
+          "dynamodb:UpdateItem",
+          "dynamodb:DeleteItem",
+        ]
+        Effect   = "Allow"
+        Resource = "arn:aws:dynamodb:${var.region}:${var.account_id}:table/${var.dynamodb_table}"
+      }
     ]
   })
 }

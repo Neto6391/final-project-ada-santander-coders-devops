@@ -1,8 +1,8 @@
-resource "aws_vpc" "vpc" {
+resource "aws_vpc" "main" {
   cidr_block           = var.vpc_cidr
   enable_dns_hostnames = true
   enable_dns_support   = true
-
+  
   tags = merge(
     var.tags,
     {
@@ -13,91 +13,62 @@ resource "aws_vpc" "vpc" {
   )
 }
 
-resource "aws_subnet" "subnets" {
-  count = length(local.subnet_configs) * length(var.availability_zones)
-
-  vpc_id     = aws_vpc.vpc.id
-  cidr_block = cidrsubnet(
-    var.vpc_cidr, 
-    local.subnet_newbits,
-    local.subnet_configs[floor(count.index / length(var.availability_zones))].cidr_offset +
-    (count.index % length(var.availability_zones))
-  )
-
-  availability_zone       = var.availability_zones[count.index % length(var.availability_zones)]
-  map_public_ip_on_launch = local.subnet_configs[floor(count.index / length(var.availability_zones))].public_ip
-
+resource "aws_subnet" "private_subnets" {
+  count = length(var.availability_zones)
+  
+  vpc_id     = aws_vpc.main.id
+  cidr_block = cidrsubnet(var.vpc_cidr, 8, count.index)
+  
+  availability_zone       = var.availability_zones[count.index]
+  map_public_ip_on_launch = false
+  
   tags = merge(
     var.tags,
     {
-      Name        = "${var.environment}-${lower(local.subnet_configs[floor(count.index / length(var.availability_zones))].tier)}-subnet-${count.index % length(var.availability_zones) + 1}"
+      Name        = "${var.environment}-private-subnet-${count.index + 1}"
       Environment = var.environment
-      Tier        = local.subnet_configs[floor(count.index / length(var.availability_zones))].tier
+      Tier        = "Private"
       Managed_by  = "Terraform"
     }
   )
 }
 
-resource "aws_db_subnet_group" "database" {
-  name        = "database-subnet-group-${var.environment}"
-  description = "Database Subnet Group"
-
-  subnet_ids = [
-    for subnet in aws_subnet.subnets :
-    subnet.id if subnet.tags.Tier == "Private-DB"
-  ]
-
-  tags = merge(
-    var.tags,
-    {
-      Name        = "${var.environment}-db-subnet-group"
-      Environment = var.environment
-      Managed_by  = "Terraform"
-    }
-  )
-}
-
-resource "aws_security_group" "database" {
-  name        = "${var.environment}-database-security-group"
-  description = "Database Security Group"
+resource "aws_security_group" "vpc_endpoint_sg" {
+  name        = "${var.environment}-vpc-endpoint-sg"
+  description = "Security group for VPC Endpoints"
   vpc_id      = aws_vpc.vpc.id
 
+  ingress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = [var.vpc_cidr]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
   tags = merge(
     var.tags,
     {
-      Name        = "${var.environment}-database-security-group"
+      Name        = "${var.environment}-vpc-endpoint-sg"
       Environment = var.environment
       Managed_by  = "Terraform"
     }
   )
 }
 
-resource "aws_security_group_rule" "database_ingress" {
-  type                     = "ingress"
-  from_port                = 5432
-  to_port                  = 5432
-  protocol                 = "tcp"
-  security_group_id        = aws_security_group.database.id
-  source_security_group_id = aws_security_group.database.id
-}
-
-resource "aws_security_group_rule" "database_egress" {
-  type              = "egress"
-  from_port         = 0
-  to_port           = 0
-  protocol          = "-1"
-  security_group_id = aws_security_group.database.id
-  cidr_blocks       = ["0.0.0.0/0"]
-}
-
-resource "aws_eip" "nat" {
-  count  = var.enable_nat_gateway ? (var.single_nat_gateway ? 1 : length(var.availability_zones)) : 0
-  domain = "vpc"
-
+resource "aws_internet_gateway" "main" {
+  vpc_id = aws_vpc.main.id
+  
   tags = merge(
     var.tags,
     {
-      Name        = var.single_nat_gateway ? "${var.environment}-nat-eip-single" : "${var.environment}-nat-eip-multiple"
+      Name        = "${var.environment}-igw"
       Environment = var.environment
       Managed_by  = "Terraform"
     }
@@ -105,7 +76,7 @@ resource "aws_eip" "nat" {
 }
 
 resource "aws_route_table" "private" {
-  vpc_id = aws_vpc.vpc.id
+  vpc_id = aws_vpc.main.id
 
   tags = merge(
     var.tags,
@@ -117,27 +88,35 @@ resource "aws_route_table" "private" {
   )
 }
 
-resource "aws_nat_gateway" "network_gateway" {
-  count         = var.enable_nat_gateway ? (var.single_nat_gateway ? 1 : length(var.availability_zones)) : 0
-  allocation_id = aws_eip.nat[count.index].id
-  subnet_id     = var.single_nat_gateway ? aws_subnet.subnets[0].id : aws_subnet.subnets[1].id
+resource "aws_route_table_association" "private_association" {
+  count          = length(aws_subnet.private_subnets)
+  subnet_id      = aws_subnet.private_subnets[count.index].id 
+  route_table_id = aws_route_table.private.id 
+}
+
+resource "aws_eip" "nat" {
+  count  = var.enable_nat_gateway ? 1 : 0
+  domain = "vpc"
 
   tags = merge(
     var.tags,
     {
+      Name        = "${var.environment}-nat-eip"
       Environment = var.environment
       Managed_by  = "Terraform"
     }
   )
 }
 
-resource "aws_internet_gateway" "internet_gateway" {
-  vpc_id = aws_vpc.vpc.id
+resource "aws_nat_gateway" "network_gateway" {
+  count         = var.enable_nat_gateway ? 1 : 0
+  allocation_id = aws_eip.nat[0].id
+  subnet_id     = aws_subnet.private_subnets[0].id
 
   tags = merge(
     var.tags,
     {
-      Name        = "${var.environment}-igw"
+      Name        = "${var.environment}-nat-gateway"
       Environment = var.environment
       Managed_by  = "Terraform"
     }
@@ -145,9 +124,9 @@ resource "aws_internet_gateway" "internet_gateway" {
 }
 
 resource "aws_vpc_endpoint" "s3_endpoint" {
-  vpc_id       = aws_vpc.vpc.id
-  service_name = "com.amazonaws.${data.aws_region.current.name}.s3"
-  
+  count            = var.create_s3_endpoint ? 1 : 0
+  vpc_id           = aws_vpc.main.id
+  service_name     = "com.amazonaws.${data.aws_region.current.name}.s3"
   vpc_endpoint_type = "Gateway"
 
   route_table_ids = [
@@ -222,39 +201,23 @@ resource "aws_vpc_endpoint" "sns_endpoint" {
   )
 }
 
-resource "aws_security_group" "vpc_endpoint_sg" {
-  name        = "${var.environment}-vpc-endpoint-sg"
-  description = "Security group for VPC Endpoints"
-  vpc_id      = aws_vpc.vpc.id
+resource "aws_vpc_endpoint" "dynamodb_endpoint" {
+  vpc_id            = aws_vpc.vpc.id
+  service_name      = "com.amazonaws.${data.aws_region.current.name}.dynamodb"
+  vpc_endpoint_type = "Gateway"
 
-  ingress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = [var.vpc_cidr]
-  }
-
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
+  route_table_ids = [aws_route_table.private.id]
 
   tags = merge(
     var.tags,
     {
-      Name        = "${var.environment}-vpc-endpoint-sg"
+      Name        = "${var.environment}-dynamodb-endpoint"
       Environment = var.environment
       Managed_by  = "Terraform"
     }
   )
 }
 
-data "aws_region" "current" {}
 
-resource "aws_route_table_association" "private_association" {
-  count          = length(aws_subnet.subnets)
-  subnet_id      = aws_subnet.subnets[count.index].id 
-  route_table_id = aws_route_table.private.id 
-}
+
+data "aws_region" "current" {}

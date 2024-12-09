@@ -24,9 +24,3 @@ variable "enable_nat_gateway" {
   type        = bool
   default     = false
 }
-
-variable "single_nat_gateway" {
-  description = "Use a single NAT Gateway for all AZs (cost-effective for development)"
-  type        = bool
-  default     = false
-}

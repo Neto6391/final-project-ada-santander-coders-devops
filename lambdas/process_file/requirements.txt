@@ -1,6 +1,4 @@
 typing_extensions
 boto3
-SQLAlchemy
-psycopg2
-psycopg2-binary
+botocore
 requests

@@ -1,6 +1,4 @@
 aws_access_key = "AWS_ACCESS_KEY_PLACEHOLDER"
 aws_secret_key = "AWS_SECRET_KEY_PLACEHOLDER"
 iam_user_arn = "IAM_USER_ARN_PLACEHOLDER" 
-master_username_rds = "MASTER_USERNAME_RDS_PLACEHOLDER" 
-master_password_rds = "MASTER_PASSWORD_RDS_PLACEHOLDER"
 email_sns = "EMAIL_SNS_PLACEHOLDER"
