@@ -30,12 +30,13 @@ class DatabaseConnectionCache:
                 DB_HOST = os.environ.get('DB_HOST')
                 DB_NAME = os.environ.get('DB_NAME')
                 
-                connection_string = f"postgresql://{DB_USERNAME}:{DB_PASSWORD}@{DB_HOST}/{DB_NAME}"
+                connection_string = f"postgresql+pg8000://{DB_USERNAME}:{DB_PASSWORD}@{DB_HOST}/{DB_NAME}"
+                
                 cls._engine = create_engine(
                     connection_string, 
                     pool_pre_ping=True, 
                     pool_recycle=3600,
-                    connect_args={'connect_timeout': 5} 
+                    connect_args={'timeout': 5}  # pg8000 utiliza 'timeout' em vez de 'connect_timeout'
                 )
                 Base.metadata.create_all(cls._engine)
             except Exception as e:
