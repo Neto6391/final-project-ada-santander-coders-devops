@@ -97,5 +97,4 @@ module "lambda" {
   create_event_source_mapping = true
   subnet_ids = module.vpc.subnet_ids["Private-DB"]
   security_group_ids    = [module.vpc.database_security_group_id]
-  vpc_endpoints    = [module.vpc.sqs_endpoint_id, module.vpc.s3_endpoint_id]
 }
