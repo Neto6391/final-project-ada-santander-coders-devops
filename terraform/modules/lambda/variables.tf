@@ -69,7 +69,7 @@ variable "tags" {
   type        = map(string)
   default     = {}
 }
-variable "vpc_endpoints_ids" {
+variable "vpc_endpoints" {
   type        = list(string)
   default     = []
 }

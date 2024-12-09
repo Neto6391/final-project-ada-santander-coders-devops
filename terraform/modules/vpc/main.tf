@@ -98,7 +98,17 @@ resource "aws_security_group_rule" "database_egress" {
 
 # Elastic IPs for NAT Gateways
 resource "aws_eip" "nat" {
-  Name = var.single_nat_gateway ? "${var.environment}-nat-eip-single" : "${var.environment}-nat-eip-multiple"
+  count  = var.enable_nat_gateway ? (var.single_nat_gateway ? 1 : length(var.availability_zones)) : 0
+  domain = "vpc"
+
+  tags = merge(
+    var.tags,
+    {
+      Name        = var.single_nat_gateway ? "${var.environment}-nat-eip-single" : "${var.environment}-nat-eip-multiple"
+      Environment = var.environment
+      Managed_by  = "Terraform"
+    }
+  )
 }
 
 
@@ -166,7 +176,7 @@ resource "aws_vpc_endpoint" "s3_endpoint" {
 }
 
 resource "aws_vpc_endpoint" "sqs_endpoint" {
-  vpc_id            = aws_vpc.main.id
+  vpc_id            = aws_vpc.vpc.id
   service_name      = "com.amazonaws.${data.aws_region.current.name}.sqs"
   vpc_endpoint_type = "Interface"
 
