@@ -76,14 +76,11 @@ resource "aws_lambda_layer_version" "psycopg2_layer" {
   layer_name = "psycopg2-layer-${var.environment}"
   compatible_runtimes = ["python3.8"]
 
-  tags = merge(
-    var.tags,
-    {
+  tags = {
       Name        = "psycopg2-layer-${var.environment}"
       Environment = var.environment
       Managed_by  = "Terraform"
     }
-  )
 }
 
 resource "aws_s3_bucket_notification" "bucket_notification" {
