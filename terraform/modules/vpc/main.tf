@@ -111,8 +111,6 @@ resource "aws_nat_gateway" "network_gateway" {
   tags = merge(
     var.tags,
     {
-      Name = var.single_nat_gateway ? "${var.environment}-nat-single" : "${var.environment}-nat-multiple"
-
       Environment = var.environment
       Managed_by  = "Terraform"
     }
@@ -135,7 +133,7 @@ resource "aws_internet_gateway" "internet_gateway" {
 
 
 resource "aws_vpc_endpoint" "s3_endpoint" {
-  vpc_id       = aws_vpc.main.id
+  vpc_id       = aws_vpc.vpc.id
   service_name = "com.amazonaws.${data.aws_region.current.name}.s3"
   
   subnet_ids = [
@@ -194,7 +192,7 @@ resource "aws_vpc_endpoint" "sqs_endpoint" {
 resource "aws_security_group" "vpc_endpoint_sg" {
   name        = "${var.environment}-vpc-endpoint-sg"
   description = "Security group for VPC Endpoints"
-  vpc_id      = aws_vpc.main.id
+  vpc_id      = aws_vpc.vpc.id
 
   ingress {
     from_port   = 0
