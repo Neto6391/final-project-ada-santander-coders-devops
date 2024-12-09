@@ -111,6 +111,19 @@ resource "aws_eip" "nat" {
   )
 }
 
+resource "aws_route_table" "private" {
+  vpc_id = aws_vpc.vpc.id
+
+  tags = merge(
+    var.tags,
+    {
+      Name        = "${var.environment}-private-route-table"
+      Environment = var.environment
+      Managed_by  = "Terraform"
+    }
+  )
+}
+
 
 resource "aws_nat_gateway" "network_gateway" {
   count         = var.enable_nat_gateway ? (var.single_nat_gateway ? 1 : length(var.availability_zones)) : 0
@@ -231,9 +244,10 @@ data "aws_region" "current" {}
 
 
 resource "aws_route" "s3_route" {
-  route_table_id         = aws_route_table.private.id 
+  route_table_id         = aws_route_table.private.id
   destination_prefix_list = ["com.amazonaws.${data.aws_region.current.name}.s3"]
   vpc_endpoint_id        = aws_vpc_endpoint.s3_endpoint.id  
+  destination_cidr_block = "0.0.0.0/0"
 }
 
 
