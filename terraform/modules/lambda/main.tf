@@ -66,7 +66,6 @@ resource "aws_lambda_function" "ada_lambda" {
   vpc_config {
     subnet_ids         = var.subnet_ids
     security_group_ids = var.security_group_ids
-    vpc_endpoint_ids = var.vpc_endpoints
   }
 
 }
