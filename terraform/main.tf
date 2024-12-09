@@ -52,6 +52,13 @@ module "dynamodb_contabilidade" {
     { name = "processed_at", type = "S" }
   ]
 
+  index = [
+  {
+    name       = "FileNameIndex",
+    hash_key   = "file_name",
+    projection = "ALL"
+  }
+
   global_secondary_indexes = [
     {
       name            = "ProcessedAtIndex"

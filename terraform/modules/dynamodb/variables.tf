@@ -38,3 +38,29 @@ variable "tags" {
   type        = map(string)
   default     = {}
 }
+
+variable "attributes" {
+  description = "List of attributes for DynamoDB table"
+  type        = list(map(string))
+  default = [
+    { name = "file_id", type = "S" },
+    { name = "file_name", type = "S" },
+    { name = "created_at", type = "S" }
+  ]
+}
+
+variable "index" {
+  description = "List of global secondary indexes"
+  type = list(object({
+    name       = string
+    hash_key   = string
+    projection = string
+  }))
+  default = [
+    {
+      name       = "FileNameIndex",
+      hash_key   = "file_name",
+      projection = "ALL"
+    }
+  ]
+}
