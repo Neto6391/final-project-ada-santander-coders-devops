@@ -51,6 +51,21 @@ resource "aws_iam_policy" "lambda_policy" {
         ]
         Effect   = "Allow"
         Resource = "arn:aws:logs:*:*:*"
+      }, 
+      {
+        Action   = "ec2:CreateNetworkInterface"
+        Effect   = "Allow"
+        Resource = "*"
+      },
+      {
+        Action   = "ec2:DescribeNetworkInterfaces"
+        Effect   = "Allow"
+        Resource = "*"
+      },
+      {
+        Action   = "ec2:DeleteNetworkInterface"
+        Effect   = "Allow"
+        Resource = "*"
       }
     ]
   })
