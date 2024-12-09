@@ -1,7 +1,7 @@
 locals {
   lambda_common_config = {
     handler = "index.lambda_handler"
-    runtime = "python3.8"
+    runtime = "python3.9"
   }
 
   lambda_functions = {
@@ -73,7 +73,7 @@ resource "aws_lambda_function" "ada_lambda" {
 resource "aws_lambda_layer_version" "psycopg2_layer" {
   filename   = "../packages/psycopg2_layer.zip"
   layer_name = "psycopg2-layer-${var.environment}"
-  compatible_runtimes = ["python3.8"]
+  compatible_runtimes = ["python3.9"]
 }
 
 resource "aws_s3_bucket_notification" "bucket_notification" {

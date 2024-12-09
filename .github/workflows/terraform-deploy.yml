@@ -115,6 +115,16 @@ jobs:
         name: lambda-packages
         path: packages/
 
+    - name: Publish psycopg2 Lambda Layer
+      working-directory: ./lambdas
+      run: |
+        aws lambda publish-layer-version \
+          --layer-name psycopg2-layer \
+          --description "psycopg2 layer for PostgreSQL connections" \
+          --zip-file fileb://packages/psycopg2_layer.zip \
+          --compatible-runtimes python3.9 \
+          --region ${{ secrets.AWS_REGION }}
+
     - name: Invoke ada-generate-file-production Lambda Function
       run: |
         aws lambda invoke \

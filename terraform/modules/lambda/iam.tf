@@ -21,9 +21,9 @@ resource "aws_iam_policy" "lambda_policy" {
     Statement = [
       {
         Action = [
-          "s3:GetObject",
-          "s3:PutObject",
-          "s3:DeleteObject",
+        "s3:GetObject",
+        "s3:PutObject",
+        "s3:DeleteObject",
         ]
         Effect   = "Allow"
         Resource = "arn:aws:s3:::${var.bucket_name}/*"
@@ -51,22 +51,26 @@ resource "aws_iam_policy" "lambda_policy" {
         ]
         Effect   = "Allow"
         Resource = "arn:aws:logs:*:*:*"
-      }, 
+      },
       {
-        Action   = "ec2:CreateNetworkInterface"
+        Action   = [
+            "ec2:CreateNetworkInterface",
+            "ec2:DescribeNetworkInterfaces",
+            "ec2:DeleteNetworkInterface"
+        ]
         Effect   = "Allow"
         Resource = "*"
       },
       {
-        Action   = "ec2:DescribeNetworkInterfaces"
+        Action = [
+          "lambda:PublishLayerVersion",
+          "lambda:DeleteLayerVersion",
+          "lambda:GetLayerVersion",
+          "lambda:ListLayerVersions"
+        ]
         Effect   = "Allow"
         Resource = "*"
-      },
-      {
-        Action   = "ec2:DeleteNetworkInterface"
-        Effect   = "Allow"
-        Resource = "*"
-      }
+    }
     ]
   })
 }
