@@ -101,19 +101,10 @@ resource "aws_eip" "nat" {
   Name = var.single_nat_gateway ? "${var.environment}-nat-eip-single" : "${var.environment}-nat-eip-multiple"
 }
 
-resource "aws_nat_gateway" "network_gateway" {
-  subnet_id = var.single_nat_gateway ? aws_subnet.subnets[0].id : aws_subnet.subnets[1].id
-
-  allocation_id = aws_eip.nat.id
-
-  tags = {
-    Name = var.single_nat_gateway ? "${var.environment}-nat-single" : "${var.environment}-nat-multiple"
-  }
-}
 
 resource "aws_nat_gateway" "network_gateway" {
   count         = var.enable_nat_gateway ? (var.single_nat_gateway ? 1 : length(var.availability_zones)) : 0
-  allocation_id = aws_eip.nat[count.index].id
+  allocation_id = aws_eip.nat.id
   subnet_id = var.single_nat_gateway ? aws_subnet.subnets[0].id : aws_subnet.subnets[1].id
 
 
