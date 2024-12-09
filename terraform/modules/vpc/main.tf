@@ -158,13 +158,10 @@ resource "aws_internet_gateway" "internet_gateway" {
 resource "aws_vpc_endpoint" "s3_endpoint" {
   vpc_id       = aws_vpc.vpc.id
   service_name = "com.amazonaws.${data.aws_region.current.name}.s3"
-  
-  subnet_ids = [
-    for subnet in aws_subnet.subnets :
-    subnet.id if subnet.tags.Tier == "Private-App"
-  ]
 
   vpc_endpoint_type = "Gateway"
+
+  route_table_ids = [aws_route_table.private.id]
 
   policy = jsonencode({
     Version = "2012-10-17"
