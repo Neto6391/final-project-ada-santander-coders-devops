@@ -64,7 +64,6 @@ resource "aws_lambda_function" "ada_lambda" {
   layers = each.key == "process_file" ? [aws_lambda_layer_version.psycopg2_layer.arn] : []
 
   vpc_config {
-    count = each.key == "process_file" ? 1 : 0
     subnet_ids         = var.subnet_ids
     security_group_ids = var.security_group_ids
   }
