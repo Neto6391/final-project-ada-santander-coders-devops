@@ -241,32 +241,3 @@ resource "aws_route_table_association" "private_association" {
   subnet_id      = aws_subnet.subnets[0].id 
   route_table_id = aws_route_table.private.id 
 }
-
-resource "aws_security_group" "vpc_endpoint_sg" {
-  name        = "${var.environment}-vpc-endpoint-sg"
-  description = "Security group for VPC Endpoints"
-  vpc_id      = aws_vpc.vpc.id  # VPC ID
-
-  ingress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = [var.vpc_cidr]  # Permitir tráfego da rede da VPC
-  }
-
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]  # Permitir tráfego de saída
-  }
-
-  tags = merge(
-    var.tags,
-    {
-      Name        = "${var.environment}-vpc-endpoint-sg"
-      Environment = var.environment
-      Managed_by  = "Terraform"
-    }
-  )
-}
