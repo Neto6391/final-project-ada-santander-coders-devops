@@ -51,3 +51,21 @@ variable "sqs_queue_arn" {
   type        = string
   default     = null
 }
+
+variable "subnet_ids" {
+  description = "Lista de subnets onde a função Lambda deve ser colocada"
+  type        = list(string)
+  default     = []
+}
+
+variable "security_group_ids" {
+  description = "Lista de IDs de Security Groups para associar à função Lambda"
+  type        = list(string)
+  default     = []
+}
+
+variable "tags" {
+  description = "Additional tags to apply to all resources"
+  type        = map(string)
+  default     = {}
+}

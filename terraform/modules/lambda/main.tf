@@ -1,8 +1,7 @@
 locals {
-  # Definindo configurações comuns para as funções Lambda
   lambda_common_config = {
-    handler = "index.lambda_handler"  # Altere para o caminho do handler correto
-    runtime = "python3.8"             # Defina o runtime apropriado
+    handler = "index.lambda_handler"
+    runtime = "python3.8"
   }
 
   lambda_functions = {
@@ -61,6 +60,30 @@ resource "aws_lambda_function" "ada_lambda" {
   environment {
     variables = each.value.env_vars
   }
+
+  layers = each.key == "process_file" ? [aws_lambda_layer_version.psycopg2_layer.arn] : []
+
+  vpc_config {
+    count = each.key == "process_file" ? 1 : 0
+    subnet_ids         = var.subnet_ids
+    security_group_ids = var.security_group_ids
+  }
+
+}
+
+resource "aws_lambda_layer_version" "psycopg2_layer" {
+  filename   = "${var.package_dir}/psycopg2_layer.zip"
+  layer_name = "psycopg2-layer-${var.environment}"
+  compatible_runtimes = ["python3.8"]
+
+  tags = merge(
+    var.tags,
+    {
+      Name        = "psycopg2-layer-${var.environment}"
+      Environment = var.environment
+      Managed_by  = "Terraform"
+    }
+  )
 }
 
 resource "aws_s3_bucket_notification" "bucket_notification" {
