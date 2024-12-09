@@ -91,6 +91,6 @@ module "lambda" {
   rds_db_name           = "contabilidade2025"
   create_notify_user_lambda = true
   create_event_source_mapping = true
-  subnet_ids = [for id in [module.vpc.subnet_ids["Private-DB"]] : id if id != null]
+  subnet_ids = module.vpc.subnet_ids["Private-DB"]
   security_group_ids    = [module.vpc.database_security_group_id]
 }
