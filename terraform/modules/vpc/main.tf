@@ -3,6 +3,7 @@ resource "aws_vpc" "vpc" {
   cidr_block           = var.vpc_cidr
   enable_dns_hostnames = true
   enable_dns_support   = true
+  
 
   tags = merge(
     var.tags,
@@ -97,13 +98,15 @@ resource "aws_security_group_rule" "database_egress" {
 
 # Elastic IPs for NAT Gateways
 resource "aws_eip" "nat" {
-  count  = length(var.availability_zones)
+  count  = var.enable_nat_gateway ? (var.single_nat_gateway ? 1 : length(var.availability_zones)) : 0
   domain = "vpc"
 
   tags = merge(
     var.tags,
     {
-      Name        = "${var.environment}-nat-eip-${count.index + 1}"
+      Name        = var.single_nat_gateway ? 
+        "${var.environment}-nat-eip-single" : 
+        "${var.environment}-nat-eip-${count.index + 1}"
       Environment = var.environment
       Managed_by  = "Terraform"
     }
@@ -111,14 +114,18 @@ resource "aws_eip" "nat" {
 }
 
 resource "aws_nat_gateway" "network_gateway" {
-  count         = length(var.availability_zones)
+  count         = var.enable_nat_gateway ? (var.single_nat_gateway ? 1 : length(var.availability_zones)) : 0
   allocation_id = aws_eip.nat[count.index].id
-  subnet_id     = aws_subnet.subnets[count.index].id
+  subnet_id     = var.single_nat_gateway ? 
+    aws_subnet.subnets[0].id : 
+    aws_subnet.subnets[count.index].id
 
   tags = merge(
     var.tags,
     {
-      Name        = "${var.environment}-nat-${count.index + 1}"
+      Name        = var.single_nat_gateway ? 
+        "${var.environment}-nat-single" : 
+        "${var.environment}-nat-${count.index + 1}"
       Environment = var.environment
       Managed_by  = "Terraform"
     }
@@ -137,3 +144,93 @@ resource "aws_internet_gateway" "internet_gateway" {
     }
   )
 }
+
+
+
+resource "aws_vpc_endpoint" "s3_endpoint" {
+  vpc_id       = aws_vpc.main.id
+  service_name = "com.amazonaws.${data.aws_region.current.name}.s3"
+  
+  subnet_ids = [
+    for subnet in aws_subnet.subnets :
+    subnet.id if subnet.tags.Tier == "Private-App"
+  ]
+
+  vpc_endpoint_type = "Gateway"
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect    = "Allow"
+        Principal = "*"
+        Action    = "s3:*"
+        Resource  = "*"
+      }
+    ]
+  })
+
+  tags = merge(
+    var.tags,
+    {
+      Name        = "${var.environment}-s3-endpoint"
+      Environment = var.environment
+      Managed_by  = "Terraform"
+    }
+  )
+}
+
+resource "aws_vpc_endpoint" "sqs_endpoint" {
+  vpc_id            = aws_vpc.main.id
+  service_name      = "com.amazonaws.${data.aws_region.current.name}.sqs"
+  vpc_endpoint_type = "Interface"
+
+  subnet_ids = [
+    for subnet in aws_subnet.subnets :
+    subnet.id if subnet.tags.Tier == "Private-App"
+  ]
+
+  security_group_ids = [aws_security_group.vpc_endpoint_sg.id]
+
+  private_dns_enabled = true
+
+  tags = merge(
+    var.tags,
+    {
+      Name        = "${var.environment}-sqs-endpoint"
+      Environment = var.environment
+      Managed_by  = "Terraform"
+    }
+  )
+}
+
+resource "aws_security_group" "vpc_endpoint_sg" {
+  name        = "${var.environment}-vpc-endpoint-sg"
+  description = "Security group for VPC Endpoints"
+  vpc_id      = aws_vpc.main.id
+
+  ingress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = [var.vpc_cidr]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = merge(
+    var.tags,
+    {
+      Name        = "${var.environment}-vpc-endpoint-sg"
+      Environment = var.environment
+      Managed_by  = "Terraform"
+    }
+  )
+}
+
+data "aws_region" "current" {}

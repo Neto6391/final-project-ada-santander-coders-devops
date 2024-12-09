@@ -18,3 +18,15 @@ variable "tags" {
   type        = map(string)
   default     = {}
 }
+
+variable "enable_nat_gateway" {
+  description = "Enable NAT Gateway for private subnets"
+  type        = bool
+  default     = false
+}
+
+variable "single_nat_gateway" {
+  description = "Use a single NAT Gateway for all AZs (cost-effective for development)"
+  type        = bool
+  default     = false
+}

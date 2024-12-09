@@ -26,6 +26,10 @@ module "vpc" {
   vpc_cidr           = "10.0.0.0/16"
   environment        = var.environment
   availability_zones = ["us-east-1a", "us-east-1b", "us-east-1c"]
+
+  enable_nat_gateway = true
+  single_nat_gateway = true
+
   tags = {
     Project     = var.project_name
     ManagedBy   = "Terraform"
@@ -93,4 +97,5 @@ module "lambda" {
   create_event_source_mapping = true
   subnet_ids = module.vpc.subnet_ids["Private-DB"]
   security_group_ids    = [module.vpc.database_security_group_id]
+  vpc_endpoints_ids    = [module.vpc.sqs_endpoint_id, module.vpc.s3_endpoint_id]
 }
