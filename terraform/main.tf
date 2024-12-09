@@ -38,15 +38,6 @@ module "vpc" {
   }
 }
 
-module "dynamodb_metadata" {
-  source = "./modules/dynamodb"
-
-  environment = var.environment
-  table_name  = "${var.environment}-file-metadata"
-  hash_key    = "filename"
-  tags        = var.tags
-}
-
 module "dynamodb_contabilidade" {
   source = "./modules/dynamodb"
 
