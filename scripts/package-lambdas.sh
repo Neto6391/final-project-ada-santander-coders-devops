@@ -13,18 +13,18 @@ for LAMBDA in $(ls "$LAMBDA_DIR"); do
     echo "Empacotando $LAMBDA..."
 
     if [ "$LAMBDA" == "process_file" ]; then
-        echo "Processando a função 'process_file' - Criando Layer do psycopg2..."
+        echo "Processando a função 'process_file' - Criando Layer do pg8000..."
         
-        LAYER_DIR="$BASE_DIR/$LAMBDA_DIR/$LAMBDA/psycopg2_layer"
+        LAYER_DIR="$BASE_DIR/$LAMBDA_DIR/$LAMBDA/pg8000_layer"
         mkdir -p "$LAYER_DIR/python/lib/python3.9/site-packages"
         
-        pip install psycopg2-binary -t "$LAYER_DIR/python/lib/python3.9/site-packages"
+        pip install pg8000 -t "$LAYER_DIR/python/lib/python3.9/site-packages"
         
         cd "$LAYER_DIR"
-        zip -r "$BASE_DIR/$PACKAGE_DIR/psycopg2_layer.zip" python
+        zip -r "$BASE_DIR/$PACKAGE_DIR/pg8000_layer.zip" python
         cd "$BASE_DIR"
         
-        echo "Layer do psycopg2 criada com sucesso."
+        echo "Layer do pg8000 criada com sucesso."
     fi
 
     TEMP_VENV=$(mktemp -d)

@@ -51,7 +51,7 @@ resource "aws_lambda_function" "ada_lambda" {
   function_name = each.value.function_name
   role          = aws_iam_role.lambda_execution_role.arn
   handler       = "lambda_handler.lambda_handler"
-  runtime       = "python3.8"
+  runtime       = "python3.9"
   filename      = each.value.filename  
 
   memory_size = 512
@@ -61,7 +61,7 @@ resource "aws_lambda_function" "ada_lambda" {
     variables = each.value.env_vars
   }
 
-  layers = each.key == "process_file" ? [aws_lambda_layer_version.psycopg2_layer.arn] : []
+  layers = each.key == "process_file" ? [aws_lambda_layer_version.pg8000_layer.arn] : []
 
   vpc_config {
     subnet_ids         = var.subnet_ids
@@ -70,9 +70,9 @@ resource "aws_lambda_function" "ada_lambda" {
 
 }
 
-resource "aws_lambda_layer_version" "psycopg2_layer" {
-  filename   = "../packages/psycopg2_layer.zip"
-  layer_name = "psycopg2-layer-${var.environment}"
+resource "aws_lambda_layer_version" "pg8000_layer" {
+  filename   = "../packages/pg8000_layer.zip"
+  layer_name = "pg8000-layer-${var.environment}"
   compatible_runtimes = ["python3.9"]
 }
 

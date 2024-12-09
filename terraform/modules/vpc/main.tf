@@ -199,6 +199,29 @@ resource "aws_vpc_endpoint" "sqs_endpoint" {
   )
 }
 
+resource "aws_vpc_endpoint" "sns_endpoint" {
+  vpc_id            = aws_vpc.vpc.id
+  service_name      = "com.amazonaws.${data.aws_region.current.name}.sns"
+  vpc_endpoint_type = "Interface"
+
+  subnet_ids = [
+    for subnet in aws_subnet.subnets : subnet.id if subnet.tags.Tier == "Private-App"
+  ]
+
+  security_group_ids = [aws_security_group.vpc_endpoint_sg.id]
+
+  private_dns_enabled = true
+
+  tags = merge(
+    var.tags,
+    {
+      Name        = "${var.environment}-sns-endpoint"
+      Environment = var.environment
+      Managed_by  = "Terraform"
+    }
+  )
+}
+
 resource "aws_security_group" "vpc_endpoint_sg" {
   name        = "${var.environment}-vpc-endpoint-sg"
   description = "Security group for VPC Endpoints"
