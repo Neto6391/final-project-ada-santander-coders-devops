@@ -245,7 +245,6 @@ data "aws_region" "current" {}
 
 resource "aws_route" "s3_route" {
   route_table_id         = aws_route_table.private.id
-  destination_prefix_list = ["com.amazonaws.${data.aws_region.current.name}.s3"]
   vpc_endpoint_id        = aws_vpc_endpoint.s3_endpoint.id  
   destination_cidr_block = "0.0.0.0/0"
 }
