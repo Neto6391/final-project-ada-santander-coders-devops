@@ -10,7 +10,7 @@ variable "queues" {
     delay_seconds              = optional(number, 0)
     max_message_size           = optional(number, 262144)
     message_retention_seconds  = optional(number, 345600)
-    visibility_timeout_seconds = optional(number, 30)
+    visibility_timeout_seconds = optional(number, 150)
     allow_lambda_access        = optional(bool, true)
   }))
   default = {}
