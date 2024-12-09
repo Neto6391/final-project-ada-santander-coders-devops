@@ -33,3 +33,8 @@ variable "global_secondary_indexes" {
   default = []
 }
 
+variable "tags" {
+  description = "Tags to apply to DynamoDB resources"
+  type        = map(string)
+  default     = {}
+}
