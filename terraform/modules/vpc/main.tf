@@ -13,6 +13,20 @@ resource "aws_vpc" "vpc" {
   )
 }
 
+resource "aws_subnet" "subnets" {
+  count = 2
+
+  vpc_id                  = aws_vpc.main.id
+  cidr_block              = element(var.subnet_cidrs, count.index)
+  availability_zone       = element(data.aws_availability_zones.available.names, count.index)
+  map_public_ip_on_launch = false
+
+  tags = {
+    Name = "private-subnet-${count.index}"
+    Tier = "Private-App"
+  }
+}
+
 resource "aws_subnet" "private_subnets" {
   count = length(var.availability_zones)
   
@@ -160,11 +174,8 @@ resource "aws_vpc_endpoint" "sqs_endpoint" {
   service_name      = "com.amazonaws.${data.aws_region.current.name}.sqs"
   vpc_endpoint_type = "Interface"
 
-  subnet_ids = [
-    for subnet in aws_subnet.subnets : subnet.id if subnet.tags.Tier == "Private-App"
-  ]
-
-  security_group_ids = [aws_security_group.vpc_endpoint_sg.id]
+  security_group_ids = [aws_security_group.lambda_sg.id]
+  subnet_ids         = [for subnet in aws_subnet.subnets : subnet.id if subnet.tags["Tier"] == "Private-App"]
 
   private_dns_enabled = true
 
@@ -183,11 +194,8 @@ resource "aws_vpc_endpoint" "sns_endpoint" {
   service_name      = "com.amazonaws.${data.aws_region.current.name}.sns"
   vpc_endpoint_type = "Interface"
 
-  subnet_ids = [
-    for subnet in aws_subnet.subnets : subnet.id if subnet.tags.Tier == "Private-App"
-  ]
-
-  security_group_ids = [aws_security_group.vpc_endpoint_sg.id]
+  security_group_ids = [aws_security_group.lambda_sg.id]
+  subnet_ids         = [for subnet in aws_subnet.subnets : subnet.id if subnet.tags["Tier"] == "Private-App"]
 
   private_dns_enabled = true
 

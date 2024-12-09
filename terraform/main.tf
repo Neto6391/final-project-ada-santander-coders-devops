@@ -100,7 +100,7 @@ module "lambda" {
   dynamodb_table            = module.dynamodb_contabilidade.table_name
   create_notify_user_lambda = true
   create_event_source_mapping = true
-  subnet_ids               = module.vpc.subnet_ids
+  subnet_ids               =  module.vpc.subnet_ids
   security_group_ids        = [module.vpc.vpc_endpoint_sg_id]
   account_id               = data.aws_caller_identity.current.account_id
   region                   = var.aws_region
