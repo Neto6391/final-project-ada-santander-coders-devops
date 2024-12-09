@@ -24,3 +24,9 @@ variable "enable_nat_gateway" {
   type        = bool
   default     = false
 }
+
+variable "create_s3_endpoint" {
+  description = "Flag to create an S3 VPC endpoint"
+  type        = bool
+  default     = true
+}
