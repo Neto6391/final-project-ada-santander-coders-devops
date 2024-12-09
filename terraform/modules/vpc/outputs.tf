@@ -28,3 +28,8 @@ output "internet_gateway_id" {
   description = "ID of the Internet Gateway"
   value       = aws_internet_gateway.internet_gateway.id
 }
+
+output "vpc_endpoint_sg_id" {
+  description = "The security group ID for Lambda"
+  value = aws_security_group.vpc_endpoint_sg.id
+}

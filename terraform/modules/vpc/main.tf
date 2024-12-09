@@ -16,7 +16,7 @@ resource "aws_vpc" "vpc" {
 resource "aws_subnet" "private_subnets" {
   count = length(var.availability_zones)
   
-  vpc_id     = aws_vpc.main.id
+  vpc_id     = aws_vpc.vpc.id
   cidr_block = cidrsubnet(var.vpc_cidr, 8, count.index)
   
   availability_zone       = var.availability_zones[count.index]
@@ -63,7 +63,7 @@ resource "aws_security_group" "vpc_endpoint_sg" {
 }
 
 resource "aws_internet_gateway" "main" {
-  vpc_id = aws_vpc.main.id
+  vpc_id = aws_vpc.vpc.id
   
   tags = merge(
     var.tags,
@@ -76,7 +76,7 @@ resource "aws_internet_gateway" "main" {
 }
 
 resource "aws_route_table" "private" {
-  vpc_id = aws_vpc.main.id
+  vpc_id = aws_vpc.vpc.id
 
   tags = merge(
     var.tags,
@@ -125,7 +125,7 @@ resource "aws_nat_gateway" "network_gateway" {
 
 resource "aws_vpc_endpoint" "s3_endpoint" {
   count            = var.create_s3_endpoint ? 1 : 0
-  vpc_id           = aws_vpc.main.id
+  vpc_id           = aws_vpc.vpc.id
   service_name     = "com.amazonaws.${data.aws_region.current.name}.s3"
   vpc_endpoint_type = "Gateway"
 
