@@ -62,7 +62,7 @@ resource "aws_security_group" "vpc_endpoint_sg" {
   )
 }
 
-resource "aws_internet_gateway" "main" {
+resource "aws_internet_gateway" "internet_gateway" {
   vpc_id = aws_vpc.vpc.id
   
   tags = merge(
