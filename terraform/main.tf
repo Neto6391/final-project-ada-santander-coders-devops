@@ -102,7 +102,6 @@ module "lambda" {
   create_event_source_mapping = true
   subnet_ids               = module.vpc.subnet_ids
   security_group_ids        = [module.vpc.vpc_endpoint_sg_id]
-  internet_gateway_id       = module.vpc.internet_gateway_id
   account_id               = data.aws_caller_identity.current.account_id
   region                   = var.aws_region
 }
