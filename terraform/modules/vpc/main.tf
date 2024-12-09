@@ -98,34 +98,30 @@ resource "aws_security_group_rule" "database_egress" {
 
 # Elastic IPs for NAT Gateways
 resource "aws_eip" "nat" {
-  count  = var.enable_nat_gateway ? (var.single_nat_gateway ? 1 : length(var.availability_zones)) : 0
-  domain = "vpc"
+  Name = var.single_nat_gateway ? "${var.environment}-nat-eip-single" : "${var.environment}-nat-eip-multiple"
+}
 
-  tags = merge(
-    var.tags,
-    {
-      Name        = var.single_nat_gateway ? 
-        "${var.environment}-nat-eip-single" : 
-        "${var.environment}-nat-eip-${count.index + 1}"
-      Environment = var.environment
-      Managed_by  = "Terraform"
-    }
-  )
+resource "aws_nat_gateway" "network_gateway" {
+  subnet_id = var.single_nat_gateway ? aws_subnet.subnets[0].id : aws_subnet.subnets[1].id
+
+  allocation_id = aws_eip.nat.id
+
+  tags = {
+    Name = var.single_nat_gateway ? "${var.environment}-nat-single" : "${var.environment}-nat-multiple"
+  }
 }
 
 resource "aws_nat_gateway" "network_gateway" {
   count         = var.enable_nat_gateway ? (var.single_nat_gateway ? 1 : length(var.availability_zones)) : 0
   allocation_id = aws_eip.nat[count.index].id
-  subnet_id     = var.single_nat_gateway ? 
-    aws_subnet.subnets[0].id : 
-    aws_subnet.subnets[count.index].id
+  subnet_id = var.single_nat_gateway ? aws_subnet.subnets[0].id : aws_subnet.subnets[1].id
+
 
   tags = merge(
     var.tags,
     {
-      Name        = var.single_nat_gateway ? 
-        "${var.environment}-nat-single" : 
-        "${var.environment}-nat-${count.index + 1}"
+      Name = var.single_nat_gateway ? "${var.environment}-nat-single" : "${var.environment}-nat-multiple"
+
       Environment = var.environment
       Managed_by  = "Terraform"
     }
