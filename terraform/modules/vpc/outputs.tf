@@ -9,8 +9,8 @@ output "vpc_cidr_block" {
 }
 
 output "subnet_ids" {
-  description = "Map of subnet IDs by their tier"
-  value = aws_subnet.private_subnets[*].id
+  value = aws_subnet.subnets[*].id
+  description = "The IDs of the private subnets"
 }
 
 output "nat_gateway_ids" {
