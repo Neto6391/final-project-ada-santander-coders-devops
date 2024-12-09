@@ -11,8 +11,11 @@ output "vpc_cidr_block" {
 output "subnet_ids" {
   description = "Map of subnet IDs by their tier"
   value = {
-    for subnet in aws_subnet.subnets :
-    subnet.tags.Tier => [subnet.id]
+    for tier in distinct([for subnet in aws_subnet.subnets : subnet.tags.Tier]) :
+    tier => [
+      for subnet in aws_subnet.subnets :
+      subnet.id if subnet.tags.Tier == tier
+    ]
   }
 }
 
