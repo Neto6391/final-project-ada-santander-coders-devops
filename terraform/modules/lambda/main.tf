@@ -72,7 +72,7 @@ resource "aws_lambda_function" "ada_lambda" {
 }
 
 resource "aws_lambda_layer_version" "psycopg2_layer" {
-  filename   = "${var.package_dir}/psycopg2_layer.zip"
+  filename   = "../packages/psycopg2_layer.zip"
   layer_name = "psycopg2-layer-${var.environment}"
   compatible_runtimes = ["python3.8"]
 
