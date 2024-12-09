@@ -18,10 +18,7 @@ locals {
       function_name = "ada-process-file-${var.environment}"
       filename      = "../packages/process_file.zip"
       env_vars      = {
-        DB_USERNAME     = var.rds_username
-        DB_PASSWORD     = var.rds_password
-        DB_HOST         = var.rds_cluster_endpoint
-        DB_NAME         = var.rds_db_name
+        DYNAMODB_TABLE = var.dynamodb_table
         SNS_TOPIC_ARN   = var.sns_topic_arn
       }
     }
@@ -61,19 +58,11 @@ resource "aws_lambda_function" "ada_lambda" {
     variables = each.value.env_vars
   }
 
-  layers = each.key == "process_file" ? [aws_lambda_layer_version.pg8000_layer.arn] : []
-
   vpc_config {
     subnet_ids         = var.subnet_ids
     security_group_ids = var.security_group_ids
   }
 
-}
-
-resource "aws_lambda_layer_version" "pg8000_layer" {
-  filename   = "../packages/pg8000_layer.zip"
-  layer_name = "pg8000-layer-${var.environment}"
-  compatible_runtimes = ["python3.9"]
 }
 
 resource "aws_s3_bucket_notification" "bucket_notification" {

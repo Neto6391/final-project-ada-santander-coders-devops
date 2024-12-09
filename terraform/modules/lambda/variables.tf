@@ -3,24 +3,8 @@ variable "environment" {
   type        = string
 }
 
-variable "rds_username" {
-  description = "Usuário do banco de dados RDS."
-  type        = string
-}
-
-variable "rds_password" {
-  description = "Senha do banco de dados RDS."
-  type        = string
-  sensitive   = true
-}
-
-variable "rds_cluster_endpoint" {
-  description = "Endpoint do cluster RDS."
-  type        = string
-}
-
-variable "rds_db_name" {
-  description = "Nome do banco de dados RDS."
+variable "dynamodb_table" {
+  description = "Nome do banco de dados DynamoDB."
   type        = string
 }
 
@@ -72,4 +56,15 @@ variable "tags" {
 variable "vpc_endpoints" {
   type        = list(string)
   default     = []
+}
+
+variable "region" {
+  description = "Região AWS onde os recursos estão configurados"
+  type        = string
+  default     = "us-east-1"
+}
+
+variable "account_id" {
+  description = "ID da conta AWS"
+  type        = string
 }

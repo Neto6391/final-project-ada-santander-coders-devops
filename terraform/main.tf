@@ -10,9 +10,10 @@ terraform {
 }
 
 provider "aws" {
-  region = var.aws_region
+  region     = var.aws_region
   access_key = var.aws_access_key
   secret_key = var.aws_secret_key
+
   default_tags {
     tags = {
       projeto = var.project_name
@@ -21,14 +22,14 @@ provider "aws" {
   }
 }
 
+data "aws_caller_identity" "current" {}
+
 module "vpc" {
   source = "./modules/vpc"
   vpc_cidr           = "10.0.0.0/16"
   environment        = var.environment
   availability_zones = ["us-east-1a", "us-east-1b", "us-east-1c"]
-
   enable_nat_gateway = true
-  single_nat_gateway = true
 
   tags = {
     Project     = var.project_name
@@ -37,25 +38,40 @@ module "vpc" {
   }
 }
 
-module "rds" {
-  source = "./modules/rds"
+module "dynamodb_metadata" {
+  source = "./modules/dynamodb"
+
   environment = var.environment
-  subnet_ids                  = module.vpc.subnet_ids["Private-DB"]
-  database_security_group_id  = module.vpc.database_security_group_id
-  db_engine         = "postgres"
-  db_engine_version = "13.11"
-  db_instance_class = "db.t3.micro"
-  db_username = var.master_username_rds
-  db_password = var.master_password_rds
-  allocated_storage     = 20
-  backup_retention_period = 1
-  multi_az              = false
-  database_name         = "contabilidade2025"
-  tags = {
-    Project     = var.project_name
-    ManagedBy   = "Terraform"
-    Environment = var.environment
-  }
+  table_name  = "${var.environment}-file-metadata"
+  hash_key    = "filename"
+  tags        = var.tags
+}
+
+module "dynamodb_contabilidade" {
+  source = "./modules/dynamodb"
+
+  table_name  = "contabilidade"
+  hash_key    = "file_id"
+
+  attributes = [
+    { name = "file_id", type = "S" },
+    { name = "file_name", type = "S" },
+    { name = "num_lines", type = "N" },
+    { name = "processed_at", type = "S" }
+  ]
+
+  global_secondary_indexes = [
+    {
+      name            = "ProcessedAtIndex"
+      hash_key        = "processed_at"
+      projection_type = "ALL"
+    },
+    {
+      name            = "LinesIndex"
+      hash_key        = "num_lines"
+      projection_type = "KEYS_ONLY"
+    }
+  ]
 }
 
 module "s3" {
@@ -79,22 +95,21 @@ module "sqs" {
 
 module "sns" {
   source = "./modules/sns"
-  email_sns  =  var.email_sns
+  email_sns = var.email_sns
 }
 
 module "lambda" {
   source = "./modules/lambda"
 
-  environment           = var.environment
-  bucket_name           = module.s3.bucket_name
-  sqs_queue_arn         = module.sqs.queue_arns["notify"]
-  sns_topic_arn         = module.sns.sns_topic_arn
-  rds_username          = var.master_username_rds
-  rds_password          = var.master_password_rds
-  rds_cluster_endpoint  = module.rds.db_instance_endpoint
-  rds_db_name           = "contabilidade2025"
+  environment               = var.environment
+  bucket_name               = module.s3.bucket_name
+  sqs_queue_arn             = module.sqs.queue_arns["notify"]
+  sns_topic_arn             = module.sns.sns_topic_arn
+  dynamodb_table            = module.dynamodb_contabilidade.table_name
   create_notify_user_lambda = true
   create_event_source_mapping = true
-  subnet_ids = module.vpc.subnet_ids["Private-DB"]
-  security_group_ids    = [module.vpc.database_security_group_id]
+  subnet_ids               = module.vpc.subnet_ids["Private-DB"]
+  security_group_ids       = [module.vpc.database_security_group_id]
+  account_id               = data.aws_caller_identity.current.account_id
+  region                   = var.aws_region
 }
