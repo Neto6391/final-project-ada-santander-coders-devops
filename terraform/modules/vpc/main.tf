@@ -1,9 +1,7 @@
-# VPC Resource
 resource "aws_vpc" "vpc" {
   cidr_block           = var.vpc_cidr
   enable_dns_hostnames = true
   enable_dns_support   = true
-  
 
   tags = merge(
     var.tags,
@@ -40,7 +38,6 @@ resource "aws_subnet" "subnets" {
   )
 }
 
-# Database Subnet Group
 resource "aws_db_subnet_group" "database" {
   name        = "database-subnet-group-${var.environment}"
   description = "Database Subnet Group"
@@ -60,7 +57,6 @@ resource "aws_db_subnet_group" "database" {
   )
 }
 
-# Database Security Group
 resource "aws_security_group" "database" {
   name        = "${var.environment}-database-security-group"
   description = "Database Security Group"
@@ -76,7 +72,6 @@ resource "aws_security_group" "database" {
   )
 }
 
-# Database Security Group Ingress Rule
 resource "aws_security_group_rule" "database_ingress" {
   type                     = "ingress"
   from_port                = 5432
@@ -86,7 +81,6 @@ resource "aws_security_group_rule" "database_ingress" {
   source_security_group_id = aws_security_group.database.id
 }
 
-# Database Security Group Egress Rule
 resource "aws_security_group_rule" "database_egress" {
   type              = "egress"
   from_port         = 0
@@ -96,7 +90,6 @@ resource "aws_security_group_rule" "database_egress" {
   cidr_blocks       = ["0.0.0.0/0"]
 }
 
-# Elastic IPs for NAT Gateways
 resource "aws_eip" "nat" {
   count  = var.enable_nat_gateway ? (var.single_nat_gateway ? 1 : length(var.availability_zones)) : 0
   domain = "vpc"
@@ -124,12 +117,10 @@ resource "aws_route_table" "private" {
   )
 }
 
-
 resource "aws_nat_gateway" "network_gateway" {
   count         = var.enable_nat_gateway ? (var.single_nat_gateway ? 1 : length(var.availability_zones)) : 0
   allocation_id = aws_eip.nat[count.index].id
-  subnet_id = var.single_nat_gateway ? aws_subnet.subnets[0].id : aws_subnet.subnets[1].id
-
+  subnet_id     = var.single_nat_gateway ? aws_subnet.subnets[0].id : aws_subnet.subnets[1].id
 
   tags = merge(
     var.tags,
@@ -153,15 +144,15 @@ resource "aws_internet_gateway" "internet_gateway" {
   )
 }
 
-
-
 resource "aws_vpc_endpoint" "s3_endpoint" {
   vpc_id       = aws_vpc.vpc.id
   service_name = "com.amazonaws.${data.aws_region.current.name}.s3"
-
+  
   vpc_endpoint_type = "Gateway"
 
-  route_table_ids = [aws_route_table.private.id]
+  route_table_ids = [
+    aws_route_table.private.id,
+  ]
 
   policy = jsonencode({
     Version = "2012-10-17"
@@ -186,8 +177,8 @@ resource "aws_vpc_endpoint" "s3_endpoint" {
 }
 
 resource "aws_vpc_endpoint" "sqs_endpoint" {
-  vpc_id            = aws_vpc.vpc.id  # VPC ID
-  service_name      = "com.amazonaws.${data.aws_region.current.name}.sqs"  # Nome do serviço SQS
+  vpc_id            = aws_vpc.vpc.id
+  service_name      = "com.amazonaws.${data.aws_region.current.name}.sqs"
   vpc_endpoint_type = "Interface"
 
   subnet_ids = [
@@ -196,7 +187,7 @@ resource "aws_vpc_endpoint" "sqs_endpoint" {
 
   security_group_ids = [aws_security_group.vpc_endpoint_sg.id]
 
-  private_dns_enabled = true  # Permitir o uso de DNS privado
+  private_dns_enabled = true
 
   tags = merge(
     var.tags,
@@ -239,15 +230,8 @@ resource "aws_security_group" "vpc_endpoint_sg" {
 
 data "aws_region" "current" {}
 
-
-resource "aws_route" "s3_route" {
-  route_table_id         = aws_route_table.private.id
-  vpc_endpoint_id        = aws_vpc_endpoint.s3_endpoint.id  
-  destination_cidr_block = "0.0.0.0/0"
-}
-
-
 resource "aws_route_table_association" "private_association" {
-  subnet_id      = aws_subnet.subnets[0].id 
+  count          = length(aws_subnet.subnets)
+  subnet_id      = aws_subnet.subnets[count.index].id 
   route_table_id = aws_route_table.private.id 
 }
