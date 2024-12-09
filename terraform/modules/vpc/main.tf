@@ -114,7 +114,7 @@ resource "aws_eip" "nat" {
 
 resource "aws_nat_gateway" "network_gateway" {
   count         = var.enable_nat_gateway ? (var.single_nat_gateway ? 1 : length(var.availability_zones)) : 0
-  allocation_id = aws_eip.nat.id
+  allocation_id = aws_eip.nat[count.index].id
   subnet_id = var.single_nat_gateway ? aws_subnet.subnets[0].id : aws_subnet.subnets[1].id
 
 
@@ -176,18 +176,17 @@ resource "aws_vpc_endpoint" "s3_endpoint" {
 }
 
 resource "aws_vpc_endpoint" "sqs_endpoint" {
-  vpc_id            = aws_vpc.vpc.id
-  service_name      = "com.amazonaws.${data.aws_region.current.name}.sqs"
+  vpc_id            = aws_vpc.vpc.id  # VPC ID
+  service_name      = "com.amazonaws.${data.aws_region.current.name}.sqs"  # Nome do serviço SQS
   vpc_endpoint_type = "Interface"
 
   subnet_ids = [
-    for subnet in aws_subnet.subnets :
-    subnet.id if subnet.tags.Tier == "Private-App"
+    for subnet in aws_subnet.subnets : subnet.id if subnet.tags.Tier == "Private-App"
   ]
 
   security_group_ids = [aws_security_group.vpc_endpoint_sg.id]
 
-  private_dns_enabled = true
+  private_dns_enabled = true  # Permitir o uso de DNS privado
 
   tags = merge(
     var.tags,
@@ -229,3 +228,45 @@ resource "aws_security_group" "vpc_endpoint_sg" {
 }
 
 data "aws_region" "current" {}
+
+
+resource "aws_route" "s3_route" {
+  route_table_id         = aws_route_table.private.id 
+  destination_prefix_list = ["com.amazonaws.${data.aws_region.current.name}.s3"]
+  vpc_endpoint_id        = aws_vpc_endpoint.s3_endpoint.id  
+}
+
+
+resource "aws_route_table_association" "private_association" {
+  subnet_id      = aws_subnet.subnets[0].id 
+  route_table_id = aws_route_table.private.id 
+}
+
+resource "aws_security_group" "vpc_endpoint_sg" {
+  name        = "${var.environment}-vpc-endpoint-sg"
+  description = "Security group for VPC Endpoints"
+  vpc_id      = aws_vpc.vpc.id  # VPC ID
+
+  ingress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = [var.vpc_cidr]  # Permitir tráfego da rede da VPC
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]  # Permitir tráfego de saída
+  }
+
+  tags = merge(
+    var.tags,
+    {
+      Name        = "${var.environment}-vpc-endpoint-sg"
+      Environment = var.environment
+      Managed_by  = "Terraform"
+    }
+  )
+}
