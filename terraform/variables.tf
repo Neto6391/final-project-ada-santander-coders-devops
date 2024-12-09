@@ -32,17 +32,6 @@ variable "iam_user_arn" {
   type        = string
 }
 
-variable "master_username_rds" {
-  description = "Master username do RDS por GitHub Secrets"
-  type        = string
-}
-
-variable "master_password_rds" {
-  description = "Master password do RDS por GitHub Secrets"
-  type        = string
-  sensitive   = true
-}
-
 variable "email_sns" {
   description = "Email para inscrição sns"
   type        = string
