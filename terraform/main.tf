@@ -50,6 +50,7 @@ module "dynamodb_metadata" {
 module "dynamodb_contabilidade" {
   source = "./modules/dynamodb"
 
+  environment = var.environment
   table_name  = "contabilidade"
   hash_key    = "file_id"
 
