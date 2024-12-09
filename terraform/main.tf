@@ -101,7 +101,7 @@ module "lambda" {
   create_notify_user_lambda = true
   create_event_source_mapping = true
   subnet_ids               = module.vpc.subnet_ids["Private-DB"]
-  security_group_ids       = [module.vpc.database_security_group_id]
+  security_group_ids        = [module.vpc.lambda_sg_id]
   account_id               = data.aws_caller_identity.current.account_id
   region                   = var.aws_region
 }
