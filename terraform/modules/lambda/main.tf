@@ -55,7 +55,7 @@ resource "aws_lambda_function" "ada_lambda" {
   filename      = each.value.filename  
 
   memory_size = 512
-  timeout     = 30
+  timeout     = 120
 
   environment {
     variables = each.value.env_vars
