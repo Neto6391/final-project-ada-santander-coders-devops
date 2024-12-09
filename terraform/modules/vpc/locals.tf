@@ -10,12 +10,12 @@ locals {
     {
       tier        = "Private-App"
       public_ip   = false
-      cidr_offset = 10
+      cidr_offset = length(var.availability_zones)
     },
     {
       tier        = "Private-DB"
       public_ip   = false
-      cidr_offset = 20
+      cidr_offset = length(var.availability_zones) * 2
     }
   ]
 }
