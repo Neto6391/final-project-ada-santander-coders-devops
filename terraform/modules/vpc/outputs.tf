@@ -9,7 +9,7 @@ output "vpc_cidr_block" {
 }
 
 output "subnet_ids" {
-  value = aws_subnet.subnets[*].id
+  value = aws_subnet.private_subnets[*].id
   description = "The IDs of the private subnets"
 }
 
