@@ -22,21 +22,74 @@ A infraestrutura é composta pelos seguintes componentes principais:
 6. **DynamoDB**: A base de dados NoSQL DynamoDB foi configurada para armazenar dados de contabilidade, com índices secundários globais para facilitar consultas específicas.
 7. **Terraform**: Utilizado para automatizar o gerenciamento de toda a infraestrutura, garantindo que todos os recursos sejam configurados de forma padronizada e sem a necessidade de intervenção manual.
 
-## Benefícios da Infraestrutura Automatizada
-1. **Escalabilidade Automática**: Com a infraestrutura provisionada automaticamente, a ADA Contabilidade pode facilmente expandir os recursos à medida que cresce, adicionando novas instâncias ou ajustando a capacidade da rede de forma ágil e sem downtime.
-2. **Segurança Reforçada**: A segurança foi um fator chave no design da infraestrutura. Ao usar sub-redes privadas, endpoints VPC e controle rigoroso de acesso com security groups, a infraestrutura oferece proteção contra acessos não autorizados e reduz a superfície de ataque.
-3. **Maior Eficiência Operacional**: A automação traz uma redução significativa no tempo de provisionamento de novos recursos e elimina a necessidade de intervenções manuais. Com o Terraform, a infraestrutura pode ser reconstruída ou alterada de forma rápida e sem erros.
-4. **Controle de Custos**: A infraestrutura foi projetada para ser eficiente em termos de custo. Com a utilização de recursos como o NAT Gateway, S3 e DynamoDB, a ADA Contabilidade pode otimizar o uso dos serviços da AWS e evitar gastos desnecessários.
-5. **Facilidade de Manutenção**: A infraestrutura é modular e reutilizável. Novos ambientes ou configurações podem ser criados com facilidade, mantendo consistência em todas as instâncias de deployment.
+## Estrutura do Projeto
+```
+.
+├── lambdas/
+│   ├── generate_file/               # Lambda para gerar um arquivo txt aleatório
+|   |   ├── lambda_handler.py               # Arquivo da lambda
+|   |   └── requirements.txt               # Dependencias da lambda
+│   ├── notify_user/               # Lambda para disparar email para usuário
+|   |   ├── lambda_handler.py               # Arquivo da lambda
+|   |   └── requirements.txt               # Dependencias da lambda
+│   └── process_file/             # Script gerador de um txt aleatório
+|   |   ├── lambda_handler.py               # Arquivo da lambda
+|   |   └── requirements.txt # Dependencias da lambda
+├── scripts/
+│   └── package-lambdas.sh               # Script para empacotar as lambdas
+├── terraform/
+│   ├── modules/               # Módulos do Terraform
+|   |   ├── dynamodb/               # Módulo do DynamoDB
+|   |   ├── lambda/               # Módulos da lambda
+|   |   ├── s3/               # Módulos do S3
+|   |   ├── sns/               # Módulos do SNS
+|   |   ├── sqs/               # Módulos do SQS
+|   |   └── vpc/               # Módulos do VPC
+│   ├── main.tf            # Principal da Lambda
+│   ├── terraform.tfvars              # Variaveis do Terraform em tempo de execução
+│   └── variables.tf               # Variaveis do Terraform
+└── README.md
+```
 
-## O que Pode Ser Melhorado
-Embora a infraestrutura tenha sido construída para ser eficiente e escalável, há sempre espaço para melhorias. Algumas áreas a serem consideradas para aprimoramento incluem:
+## Componentes
 
-1. **Monitoramento e Alertas**: Adicionar serviços de monitoramento como o CloudWatch para rastrear o desempenho da infraestrutura e enviar alertas sobre problemas, como instâncias sobrecarregadas ou falhas nos endpoints.
-2. **Gerenciamento de Configuração**: Melhorar o gerenciamento de configurações, utilizando ferramentas como AWS Systems Manager para garantir que todas as instâncias estejam configuradas conforme os padrões de segurança e operacionais.
-3. **Escalabilidade Automática**: Implementar escalabilidade automática para instâncias de EC2, o que permitiria ajustar dinamicamente a capacidade das máquinas com base na carga.
-4. **Backup e Recuperação**: Melhorar a estratégia de backup para bancos de dados e outros recursos críticos, garantindo uma recuperação rápida e eficaz em caso de falhas.
-5. **Documentação e Treinamento**: A documentação e treinamento contínuos para as equipes de TI garantirão uma gestão mais eficiente e a capacidade de realizar modificações na infraestrutura conforme a empresa cresce.
+### Aplicação (`app/`)
+- `main.py`: Gera arquivos CSV com dados aleatórios
+- `lambda_function.py`: Processa arquivos e salva metadados no RDS
+- `lambda_function.zip`: Pacote deployável da função Lambda
+
+### Infraestrutura (`terraform/`)
+- VPC com subnets públicas e privadas
+- DynamoDB para armazenamento de dados
+- Lambda Function para processamento
+- S3 Bucket para armazenamento de arquivos
+- SNS/SQS para mensageria
+- Security Groups para controle de acesso
+
+## Pré-requisitos
+- AWS CLI configurado
+- Terraform v1.6.0 ou superior
+- Python 3.8 ou superior
+- Conta AWS com permissões necessárias
+
+## Funcionamento
+1. Script Python gera arquivo txt com dados aleatórios
+2. Arquivo é enviado para S3 automaticamente
+3. Upload aciona Lambda de Processamento para processar o arquivo
+4. Mensagem é enviada para fila SQS após o processamento ser concluído
+6. Metadados são salvos no DynamoDB
+
+## Segurança
+- VPC privada para recursos críticos
+- Security Groups específicos para cada componente
+- IAM Roles com mínimo privilégio necessário
+
+## Automação
+- Upload automático de arquivos
+- Processamento serverless via Lambda
+- Notificações automáticas via SNS/SQS
+- Infraestrutura como Código com Terraform
+
 
 ## Como Executar a Infraestrutura com Terraform
 
@@ -116,3 +169,9 @@ terraform destroy
 ```
 
 Esse comando irá excluir todos os recursos que foram criados, para garantir que você não acumule custos desnecessários na AWS.
+
+## Autor
+José Rodrigues
+
+## Licença
+Este projeto está sob a licença MIT.
