@@ -53,11 +53,12 @@ module "dynamodb_contabilidade" {
   ]
 
   index = [
-  {
-    name       = "FileNameIndex",
-    hash_key   = "file_name",
-    projection = "ALL"
-  }
+    {
+      name       = "FileNameIndex",
+      hash_key   = "file_name",
+      projection = "ALL"
+    }
+  ]
 
   global_secondary_indexes = [
     {
