@@ -29,9 +29,9 @@ resource "aws_subnet" "subnets" {
 
 resource "aws_subnet" "private_subnets" {
   count = length(var.availability_zones)
-  
+
   vpc_id     = aws_vpc.vpc.id
-  cidr_block = cidrsubnet(var.vpc_cidr, 8, count.index)
+  cidr_block = cidrsubnet(var.vpc_cidr, 8, count.index + 3)
   
   availability_zone       = var.availability_zones[count.index]
   map_public_ip_on_launch = false
@@ -225,7 +225,5 @@ resource "aws_vpc_endpoint" "dynamodb_endpoint" {
     }
   )
 }
-
-
 
 data "aws_region" "current" {}
