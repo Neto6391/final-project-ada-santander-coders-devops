@@ -13,19 +13,6 @@ resource "aws_vpc" "vpc" {
   )
 }
 
-resource "aws_subnet" "subnets" {
-  count = 3
-
-  vpc_id                  = aws_vpc.vpc.id
-  cidr_block              = cidrsubnet(var.vpc_cidr, 8, count.index)
-  availability_zone       = element(var.availability_zones, count.index)
-  map_public_ip_on_launch = false
-
-  tags = {
-    Name = "private-subnet-${count.index}"
-    Tier = "Private-App"
-  }
-}
 
 resource "aws_subnet" "private_subnets" {
   count = length(var.availability_zones)
@@ -41,7 +28,7 @@ resource "aws_subnet" "private_subnets" {
     {
       Name        = "${var.environment}-private-subnet-${count.index + 1}"
       Environment = var.environment
-      Tier        = "Private"
+      Tier        = "Private-App"
       Managed_by  = "Terraform"
     }
   )
@@ -175,7 +162,7 @@ resource "aws_vpc_endpoint" "sqs_endpoint" {
   vpc_endpoint_type = "Interface"
 
   security_group_ids = [aws_security_group.vpc_endpoint_sg.id]
-  subnet_ids         = [for subnet in aws_subnet.subnets : subnet.id if subnet.tags["Tier"] == "Private-App"]
+  subnet_ids         = [for subnet in aws_subnet.private_subnets : subnet.id if subnet.tags["Tier"] == "Private-App"]
 
   private_dns_enabled = true
 
@@ -195,7 +182,7 @@ resource "aws_vpc_endpoint" "sns_endpoint" {
   vpc_endpoint_type = "Interface"
 
   security_group_ids = [aws_security_group.vpc_endpoint_sg.id]
-  subnet_ids         = [for subnet in aws_subnet.subnets : subnet.id if subnet.tags["Tier"] == "Private-App"]
+  subnet_ids         = [for subnet in aws_subnet.private_subnets : subnet.id if subnet.tags["Tier"] == "Private-App"]
 
   private_dns_enabled = true
 
